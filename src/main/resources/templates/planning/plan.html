@@ -49,8 +49,18 @@
         <!-- Plan exists — show the plan first -->
         <article th:if="${page.plan != null}" th:with="plan=${page.plan}" class="saved-plan saved-plan-lead" aria-labelledby="saved-plan-title">
             <div class="saved-plan-heading">
-                <h1 id="saved-plan-title" th:text="${plan.active} ? 'Your current plan' : 'An earlier plan'"></h1>
+                <div class="saved-plan-title-row">
+                    <h1 id="saved-plan-title" th:text="${plan.active} ? 'Your current plan' : 'An earlier plan'"></h1>
+                    <span th:if="${plan.active}" class="plan-status-pill status-active">Active</span>
+                </div>
                 <p class="field-help" th:text="'Created ' + ${plan.createdLabel} + ' · Europe/Sofia'"></p>
+                <div class="plan-overview-strip">
+                    <span class="plan-meta-pill" th:text="${plan.days.size()} + ' days / week'"></span>
+                    <span class="plan-meta-pill" th:text="${plan.structure}"></span>
+                    <span class="plan-meta-pill" th:text="'~' + ${plan.warmupMinutes} + ' min warm-up'"></span>
+                    <span th:if="${plan.status.name() == 'VALID'}" class="plan-meta-pill pill-valid">Targets matched</span>
+                    <span th:if="${plan.status.name() == 'DEGRADED'}" class="plan-meta-pill pill-degraded">Volume adjusted</span>
+                </div>
             </div>
             <p th:unless="${plan.active}">You're viewing a saved version. <a th:href="@{/plans}">Return to the current plan</a>.</p>
             <p class="feedback feedback-error" th:if="${plan.profileChanged}">Your profile differs from this plan's inputs. Review it before training and generate a new version to use your latest choices.</p>
@@ -58,8 +68,6 @@
                 <section th:replace="~{planning/impact :: comparison(${editImpact})}"></section>
             </div>
             <div class="plan-explanation plan-explanation-compact">
-                <p th:if="${plan.status.name() == 'DEGRADED'}"><strong>Volume targets are not fully matched.</strong> Hard constraints passed; the volume table below shows shortfalls and excess.</p>
-                <p th:if="${plan.status.name() == 'VALID'}"><strong>Volume targets match.</strong> Hard constraints passed at generation.</p>
                 <details>
                     <summary>Why this weekly structure?</summary>
                     <p th:text="${plan.structure}"></p>
@@ -67,27 +75,52 @@
                     <p th:if="${plan.algorithmVersion != 'manual-v1'}">Selection balances volume coverage, preferences, variety, and estimated fatigue. It is a bounded rule-based method, with no guarantee of an optimal plan.</p>
                 </details>
             </div>
-            <section class="workout-day workout-day-compact" th:each="day, state : ${plan.days}" th:id="'plan-day-' + ${day.id}" th:aria-labelledby="'workout-day-' + ${state.index}">
-                <div class="workout-day-heading">
-                    <div><h2 th:id="'workout-day-' + ${state.index}" th:text="${day.weekday}"></h2><p th:text="${day.type}"></p></div>
-                    <div class="workout-day-meta">
-                        <p th:text="'About ' + ${day.estimatedMinutes} + ' min'"></p>
-                        <a th:if="${plan.active and !plan.profileChanged}" class="button button-secondary" th:href="@{/workouts/new/{id}(id=${day.id})}">Start workout</a>
+
+            <!-- Workout days in a responsive modern grid -->
+            <div class="plan-days-grid">
+                <section class="plan-day-card" th:each="day, state : ${plan.days}" th:id="'plan-day-' + ${day.id}" th:aria-labelledby="'workout-day-' + ${state.index}">
+                    <div class="plan-day-header">
+                        <div class="plan-day-title-wrap">
+                            <h2 th:id="'workout-day-' + ${state.index}" th:text="${day.weekday}" class="plan-day-title"></h2>
+                            <span class="plan-day-type" th:text="${day.type}"></span>
+                        </div>
+                        <div class="plan-day-actions">
+                            <span class="plan-day-duration" th:text="'~' + ${day.estimatedMinutes} + ' min'"></span>
+                            <a th:if="${plan.active and !plan.profileChanged}" class="button button-sm button-secondary" th:href="@{/workouts/new/{id}(id=${day.id})}">Start</a>
+                        </div>
                     </div>
-                </div>
-                <div class="table-scroll plan-table-scroll" role="region" th:aria-label="${day.weekday} + ' workout'" tabindex="0">
-                    <table>
-                        <caption class="visually-hidden" th:text="${day.weekday} + ' prescribed exercises'"></caption>
-                        <thead><tr><th scope="col">Exercise</th><th scope="col">Sets</th><th scope="col">Reps</th><th scope="col">Rest</th></tr></thead>
-                        <tbody><tr th:each="exercise : ${day.exercises}">
-                            <th scope="row"><strong th:text="${exercise.name}"></strong><p class="field-help" th:text="${exercise.muscle}"></p>
-                                <details class="selection-reason"><summary>Why selected</summary><p th:text="${exercise.explanation}"></p></details>
-                            </th>
-                            <td th:text="${exercise.sets}"></td><td class="rep-range" th:text="${exercise.reps}"></td><td class="rep-range" th:text="${exercise.restSeconds} + ' s'"></td>
-                        </tr></tbody>
-                    </table>
-                </div>
-            </section>
+                    <div class="table-scroll plan-table-scroll" role="region" th:aria-label="${day.weekday} + ' workout'" tabindex="0">
+                        <table class="plan-modern-table">
+                            <caption class="visually-hidden" th:text="${day.weekday} + ' prescribed exercises'"></caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="col-exercise">Exercise</th>
+                                    <th scope="col" class="col-sets">Sets</th>
+                                    <th scope="col" class="col-reps">Reps</th>
+                                    <th scope="col" class="col-rest">Rest</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="exercise : ${day.exercises}">
+                                    <th scope="row" class="cell-exercise">
+                                        <div class="exercise-name-row">
+                                            <strong class="exercise-title" th:text="${exercise.name}"></strong>
+                                            <span class="muscle-tag" th:text="${exercise.muscle}"></span>
+                                        </div>
+                                        <details class="selection-reason">
+                                            <summary>Why selected</summary>
+                                            <p th:text="${exercise.explanation}"></p>
+                                        </details>
+                                    </th>
+                                    <td class="col-sets cell-sets"><span class="set-val" th:text="${exercise.sets}"></span></td>
+                                    <td class="col-reps cell-reps"><span class="rep-range" th:text="${exercise.reps}"></span></td>
+                                    <td class="col-rest cell-rest"><span class="rest-val" th:text="${exercise.restSeconds} + ' s'"></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
             <p class="field-help" th:text="'Time includes about ' + ${plan.warmupMinutes} + ' minutes of warm-up per session. Execution time is estimated; equipment queues and individual pace can change it.'"></p>
             <section class="weekly-volume weekly-volume-compact" aria-labelledby="volume-title">
                 <details>

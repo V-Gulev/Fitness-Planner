@@ -1,0 +1,9 @@
+{
+  "version": "double-progression-v1",
+  "maxAgeDays": 21,
+  "minRir": 2,
+  "maxIncreasePercent": 10,
+  "declineMinReps": 2,
+  "declinePercent": 5,
+  "defaultSteps": {"BARBELL": 2.5, "DUMBBELL": 1, "CABLE": 2.5, "LEG_PRESS": 2.5, "LEG_CURL": 2.5, "CALF_MACHINE": 2.5}
+}

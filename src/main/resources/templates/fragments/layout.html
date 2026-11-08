@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <title th:text="${title} + ' · Intelligent Fitness Planner'">Intelligent Fitness Planner</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<header class="site-header" th:fragment="header">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="brand" th:href="@{/}" aria-label="Intelligent Fitness Planner home">
+        <svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M5 7v18M11 11v10M11 16h10M21 11v10M27 7v18" stroke="currentColor" stroke-width="3"/>
+        </svg>
+        <span>Intelligent<br>Fitness Planner</span>
+    </a>
+    <nav aria-label="Main navigation">
+        <a th:if="${signedIn}" th:href="@{/dashboard}" th:attr="aria-current=${navigationPath == '/dashboard' ? 'page' : null}">Dashboard</a>
+        <a th:href="@{/exercises}">Exercise library</a>
+        <a th:if="${signedIn}" th:href="@{/profile}">My profile</a>
+        <a th:if="${signedIn}" th:href="@{/plans}">My plan</a>
+        <a th:if="${signedIn}" th:href="@{/workouts}">Workouts</a>
+        <a th:unless="${signedIn}" th:href="@{/login}">Sign in</a>
+        <a th:unless="${signedIn}" th:href="@{/register}">Create account</a>
+        <form th:if="${signedIn}" th:action="@{/logout}" method="post">
+            <button class="text-button" type="submit">Sign out</button>
+        </form>
+    </nav>
+</header>
+<footer class="site-footer" th:fragment="footer">
+    <span>Intelligent Fitness Planner</span>
+    <span>A considered approach to strength training.</span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Exercise history')}"></head>
+<body><div class="page-shell"><header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-intro"><h1 th:text="${exerciseName}"></h1><p>Review the loads and reps you logged for this exercise. The table includes the latest 10 performances in completed workouts.</p></div>
+    <p><a th:href="@{/workouts}">All workouts</a> · <a th:href="@{/plans}">My current plan</a></p>
+    <section class="empty-state" th:if="${#lists.isEmpty(history)}"><h2 th:text="'No completed performances for ' + ${exerciseName} + ' yet.'"></h2><p>Finish a workout that includes this exercise to see its logged sets here.</p></section>
+    <section class="progress-summary" aria-labelledby="progress-title" th:unless="${#lists.isEmpty(history)}">
+        <h2 id="progress-title">Performance over time</h2>
+        <p class="field-help">Totals include every logged work set. Skipped exercises have no recorded reps or load.</p>
+        <div class="progress-charts" data-progress-charts hidden>
+            <figure data-chart="load" hidden>
+                <figcaption>Heaviest logged load <span data-load-unit></span></figcaption>
+                <div class="progress-canvas"><canvas aria-hidden="true"></canvas></div>
+                <p class="field-help">Uses the load convention from your latest recorded performance.</p>
+            </figure>
+            <figure data-chart="reps" hidden>
+                <figcaption>Total logged reps</figcaption>
+                <div class="progress-canvas"><canvas aria-hidden="true"></canvas></div>
+            </figure>
+        </div>
+        <div class="table-scroll plan-table-scroll" role="region" aria-label="Performance values" tabindex="0">
+            <table>
+                <caption>Recorded performance by workout</caption>
+                <thead><tr><th scope="col">Workout</th><th scope="col">Heaviest load</th><th scope="col">Total reps</th></tr></thead>
+                <tbody data-progress-history>
+                    <tr th:each="item : ${history}"
+                        th:attr="data-date=${item.date},data-session=${item.sessionId},data-reps=${item.totalReps()},data-load=${item.heaviestLoad()},data-convention=${item.prescription.loadType.name()}">
+                        <th scope="row"><a th:href="@{/workouts/{id}(id=${item.sessionId})}"
+                            th:text="${item.date} + ' · #' + ${item.sessionId}"></a></th>
+                        <td th:text="${item.heaviestLoad() == null ? '—' : item.heaviestLoad() + (item.prescription.loadType.name() == 'PER_HAND_EXTERNAL' ? ' kg per hand' : ' kg total')}"></td>
+                        <td th:text="${item.totalReps() == null ? 'Skipped' : item.totalReps()}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section th:unless="${#lists.isEmpty(history)}" aria-labelledby="sets-title">
+        <h2 id="sets-title">Logged sets</h2>
+        <article class="workout-entry" th:each="item : ${history}">
+            <h3><a th:href="@{/workouts/{id}(id=${item.sessionId})}" th:text="${item.date} + ' · Workout ' + ${item.sessionId}"></a></h3>
+            <p class="field-help" th:if="${item.prescription.name != exerciseName}" th:text="${item.prescription.name}"></p>
+            <p class="field-help" th:text="'Prescribed: ' + ${item.prescription.sets} + ' × ' + ${item.prescription.repMin} + '–' + ${item.prescription.repMax} + ' · ' + ${item.prescription.loadType.label}"></p>
+            <p th:if="${item.actual.isEmpty()}">Skipped</p>
+            <ol class="actual-set-list" th:unless="${item.actual.isEmpty()}">
+                <li th:each="set : ${item.actual}" th:text="${set.reps} + ' reps × ' + ${set.weightKg} + ' kg · RIR ' + ${set.rir == null ? 'not recorded' : set.rir}"></li>
+            </ol>
+        </article>
+    </section>
+</main><footer th:replace="~{fragments/layout :: footer}"></footer></div>
+<th:block th:if="${hasRecordedSets}">
+    <script th:src="@{/js/vendor/chart.umd.min.js}" defer></script>
+    <script th:src="@{/js/exercise-progress.js}" defer></script>
+</th:block>
+</body></html>

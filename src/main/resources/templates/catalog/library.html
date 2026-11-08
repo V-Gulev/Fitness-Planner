@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Exercise library')}"></head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" class="workspace" tabindex="-1">
+        <div class="page-intro">
+            <h1>Know your exercises.</h1>
+            <p>Explore movements, equipment, and execution cues. Open an exercise to see its details.</p>
+        </div>
+        <form class="library-filters" th:action="@{/exercises}" th:object="${catalogFilter}" method="get">
+            <div class="field">
+                <label for="q">Search exercises</label>
+                <input id="q" th:field="*{q}" type="search" maxlength="100" placeholder="For example, dumbbell row">
+            </div>
+            <div class="field">
+                <label for="muscle">Primary muscle</label>
+                <select id="muscle" th:field="*{muscle}">
+                    <option value="">All muscles</option>
+                    <option th:each="value : ${muscles}" th:value="${value}" th:text="${value.label}"></option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="movement">Movement category</label>
+                <select id="movement" th:field="*{movement}">
+                    <option value="">All movements</option>
+                    <option th:each="value : ${movements}" th:value="${value}" th:text="${value.label}"></option>
+                </select>
+            </div>
+            <button class="button" type="submit">Filter library</button>
+            <div class="feedback feedback-error filter-errors" role="alert" th:if="${#fields.hasErrors('*')}">
+                <p>Check your search and filter choices.</p>
+                <a th:href="@{/exercises}">Reset filters</a>
+            </div>
+        </form>
+        <div class="results-heading">
+            <p th:text="${#lists.size(exercises) == 1} ? '1 exercise' : ${#lists.size(exercises)} + ' exercises'">Exercises</p>
+            <a th:href="@{/exercises}">Reset filters</a>
+        </div>
+        <div class="empty-state" th:if="${#lists.isEmpty(exercises)}">
+            <h2>No exercises match these filters.</h2>
+            <p>Try a broader search or reset the filters to see the full library.</p>
+        </div>
+        <div class="exercise-list">
+            <details class="exercise-entry" th:each="exercise : ${exercises}">
+                <summary>
+                    <span class="exercise-name" th:text="${exercise.name}"></span>
+                    <span class="exercise-meta" th:text="${exercise.primaryMuscle.label} + ' · ' + ${exercise.difficulty.label}"></span>
+                </summary>
+                <div class="exercise-detail">
+                    <p th:text="${exercise.instructions}"></p>
+                    <dl>
+                        <div><dt>Equipment</dt><dd th:text="${exercise.equipmentLabel()}"></dd></div>
+                        <div><dt>Movement</dt><dd th:text="${exercise.movementPattern.label}"></dd></div>
+                        <div><dt>Classification</dt><dd th:text="${exercise.compound} ? 'Compound' : 'Isolation'"></dd></div>
+                        <div><dt>Load convention</dt><dd th:text="${exercise.loadType.label}"></dd></div>
+                        <div th:unless="${#sets.isEmpty(exercise.secondaryMuscles)}">
+                            <dt>Secondary muscles</dt>
+                            <dd><span th:each="muscle, state : ${exercise.secondaryMuscles}" th:text="${muscle.label} + (${state.last} ? '' : ', ')"></span></dd>
+                        </div>
+                    </dl>
+                </div>
+            </details>
+        </div>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+</body>
+</html>

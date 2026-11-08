@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Workout log')}"></head>
+<body><div class="page-shell"><header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-intro"><h1 th:text="${workout.editable()} ? 'Log the work you do.' : 'Your session, preserved.'"></h1>
+        <p th:text="${workout.date} + ' · Workout ' + ${workout.id} + ' · ' + ${#strings.replace(workout.status, '_', ' ')}"></p>
+        <p class="field-help" th:text="'Started logging: ' + ${workout.startedLabel} + ' · Europe/Sofia'"></p>
+        <p class="field-help" th:if="${workout.completedLabel}" th:text="'Completed logging: ' + ${workout.completedLabel} + ' · Europe/Sofia'"></p>
+    </div>
+    <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <p><a th:href="@{/workouts}">All workouts</a> · <a th:href="@{/plans/{id}(id=${workout.planId})}">Original plan</a></p>
+    <form th:action="@{/workouts/{id}(id=${workout.id})}" th:object="${workoutLogForm}" method="post">
+        <input type="hidden" th:field="*{version}">
+        <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}"><p>Your changes have not been saved:</p><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div>
+        <p class="field-help" th:if="${workout.editable()}">Log work sets only. Enter reps and external load in kg; RIR is optional (0–10 reps in reserve). For bodyweight sets, enter 0 kg external load. Leave unused rows entirely blank.</p>
+        <section class="workout-entry" th:each="performance, pi : ${workout.performances}">
+            <h2 th:text="${performance.prescription.name}"></h2>
+            <p class="prescription-line" th:text="'Prescribed: ' + ${performance.prescription.sets} + ' sets · ' + ${performance.prescription.repMin} + '–' + ${performance.prescription.repMax} + ' reps · ' + ${performance.prescription.restSeconds} + ' s rest'"></p>
+            <p class="field-help" th:text="${performance.prescription.loadType.label} + ', kg'"></p>
+            <p th:if="${performance.acceptedTarget != null}" th:text="'Accepted target: ' + ${performance.acceptedTarget} + ' kg'"></p>
+            <p class="field-help" th:if="${performance.acceptedTarget == null}">No load target was accepted for this session.</p>
+            <details class="selection-reason"><summary>Suggestion when this workout started</summary><p th:text="${performance.decision.explanation}"></p><p th:text="'Evidence performance IDs: ' + ${performance.decision.evidenceIds}"></p><p th:text="'Rules: ' + ${workout.progressionVersion}"></p></details>
+            <div th:if="${workout.editable()}" class="actual-entry">
+                <input type="hidden" th:field="*{performances[__${pi.index}__].id}">
+                <div class="field status-field"><label th:for="${'status-' + pi.index}" th:text="'Status for ' + ${performance.prescription.name}"></label>
+                    <select th:id="${'status-' + pi.index}" th:field="*{performances[__${pi.index}__].status}"><option value="PENDING">In progress</option><option value="COMPLETED">Completed</option><option value="SKIPPED">Skipped</option></select>
+                </div>
+                <fieldset class="work-sets" th:attr="data-performance-index=${pi.index}">
+                    <legend th:text="'Actual work sets · ' + ${performance.prescription.name}"></legend>
+                    <div class="set-row" th:each="set, si : *{performances[__${pi.index}__].sets}">
+                        <span class="set-label" th:text="'Set ' + ${si.count}"></span>
+                        <label>Reps<input type="number" min="1" max="100" th:aria-label="'Reps, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].reps}"></label>
+                        <label>Weight, kg<input type="number" min="0" max="1000" step="0.01" inputmode="decimal" th:aria-label="'Weight in kg, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].weightKg}"></label>
+                        <label>RIR <span class="field-help">optional</span><input type="number" min="0" max="10" th:aria-label="'RIR, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].rir}"></label>
+                    </div>
+                </fieldset>
+                <button class="text-button add-set" type="button" hidden>Add work set</button>
+                <p class="field-help">To remove a set, clear all three values. Keep logged sets consecutive. A completed exercise may have fewer or extra sets; progression requires the exact prescription.</p>
+            </div>
+            <div th:unless="${workout.editable()}">
+                <p th:text="'Recorded status: ' + ${performance.status}"></p>
+                <p class="field-help" th:if="${#lists.isEmpty(performance.actual)}">No sets logged.</p>
+                <ol class="actual-set-list"><li th:each="set : ${performance.actual}" th:text="${set.reps} + ' reps × ' + ${set.weightKg} + ' kg · RIR ' + ${set.rir == null ? 'not recorded' : set.rir}"></li></ol>
+            </div>
+            <p><a th:href="@{/workouts/exercises/{id}(id=${performance.prescription.exerciseId})}">Exercise history</a></p>
+        </section>
+        <div class="form-actions" th:if="${workout.editable()}"><button class="button button-secondary" type="submit" name="action" value="SAVE">Save draft</button><button class="button" type="submit" name="action" value="FINISH">Finish workout</button><p class="field-help">Finishing makes the log permanent. Mark every exercise Completed or Skipped first.</p></div>
+    </form>
+    <form class="cancel-workout" th:if="${workout.editable()}" th:action="@{/workouts/{id}/cancel(id=${workout.id})}" method="post"><input type="hidden" name="version" th:value="${workout.version}"><button class="text-button" type="submit">Cancel this draft</button><p class="field-help">Keeps the draft for reference and excludes it from progression. Unsaved values are discarded.</p></form>
+    <p class="feedback" th:unless="${workout.editable()}">This log is closed. Start your next session from your current plan to review fresh load suggestions.</p>
+</main><footer th:replace="~{fragments/layout :: footer}"></footer></div>
+<script th:src="@{/js/workout-log.js}" defer></script>
+</body></html>

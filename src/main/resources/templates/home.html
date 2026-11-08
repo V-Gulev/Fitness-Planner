@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Welcome')}"></head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" tabindex="-1">
+        <section class="introduction" aria-labelledby="page-title">
+            <div class="introduction-copy">
+                <h1 id="page-title">A stronger week<br>starts with a <span>plan.</span></h1>
+                <p class="lead">Your time. Your equipment. Your training goals.
+                    A clearer way to bring them together.</p>
+                <a class="button" th:href="${signedIn} ? @{/dashboard} : @{/register}">
+                    <span th:text="${signedIn} ? 'Open dashboard' : 'Create your profile'">Create your profile</span>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7"/>
+                    </svg>
+                </a>
+            </div>
+            <aside class="development-note" aria-labelledby="development-title">
+                <h2 id="development-title">Good training takes groundwork.</h2>
+                <p>Set up your fitness profile and explore the exercise library.
+                    Generate an explained weekly plan from your choices. Log actual sets and review explained load suggestions.</p>
+                <p><a href="#approach">Explore the planning approach</a>.</p>
+            </aside>
+        </section>
+        <section id="approach" class="approach" aria-labelledby="approach-title">
+            <div class="section-intro">
+                <h2 id="approach-title">Training with a reason<br>behind every recommendation.</h2>
+                <p>The planner uses clear rules and your recorded performance to guide decisions.</p>
+            </div>
+            <ol class="approach-steps">
+                <li>
+                    <h3>Start with your constraints</h3>
+                    <p>Your available days, session length, experience, and equipment define what fits.</p>
+                </li>
+                <li>
+                    <h3>Understand your plan</h3>
+                    <p>See why exercises were selected, how training is distributed, and which targets could not be met.</p>
+                </li>
+                <li>
+                    <h3>Progress from performance</h3>
+                    <p>Record what you actually complete. Load suggestions use that evidence.</p>
+                </li>
+            </ol>
+        </section>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+</body>
+</html>

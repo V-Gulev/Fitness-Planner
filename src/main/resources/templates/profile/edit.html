@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My fitness profile')}"></head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" class="workspace" tabindex="-1">
+        <div class="page-intro">
+            <h1>Make room for<br>your training.</h1>
+            <p>Set the constraints that a useful plan needs to respect. You can update these choices any time.</p>
+        </div>
+        <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
+        <form class="profile-form" th:action="@{/profile}" th:object="${profileForm}" method="post">
+            <input type="hidden" th:field="*{version}">
+            <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
+                <p>Please check your profile:</p>
+                <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+                <a th:if="${#fields.hasErrors('version')}" th:href="@{/profile}">Reload your saved profile</a>
+            </div>
+            <section class="form-section" aria-labelledby="basics-title">
+                <div class="form-section-intro">
+                    <h2 id="basics-title">Your starting point</h2>
+                    <p>Choose the goal and experience level that fit your current training.</p>
+                </div>
+                <div class="form-fields">
+                    <div class="field">
+                        <label for="experience">Training experience</label>
+                        <select id="experience" th:field="*{experience}" required>
+                            <option value="">Choose experience</option>
+                            <option th:each="value : ${experiences}" th:value="${value}" th:text="${value.label}"></option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="goal">Primary goal</label>
+                        <select id="goal" th:field="*{goal}" required>
+                            <option value="">Choose goal</option>
+                            <option th:each="value : ${goals}" th:value="${value}" th:text="${value.label}"></option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="sessionMinutes">Session length, in minutes</label>
+                        <input id="sessionMinutes" th:field="*{sessionMinutes}" type="number" min="20" max="120" required>
+                    </div>
+                </div>
+            </section>
+            <section class="form-section" aria-labelledby="schedule-title">
+                <div class="form-section-intro">
+                    <h2 id="schedule-title">A week that fits</h2>
+                    <p>Actual weekdays help the planner check the spacing between sessions.</p>
+                </div>
+                <fieldset>
+                    <legend>Training days <span class="field-help">Select 2–5 days</span></legend>
+                    <div class="choice-grid days-grid">
+                        <label class="choice" th:each="day : ${days}">
+                            <input type="checkbox" th:field="*{weekdays}" th:value="${day.value}">
+                            <span th:text="${day.label}"></span>
+                        </label>
+                    </div>
+                </fieldset>
+            </section>
+            <section class="form-section" aria-labelledby="equipment-title">
+                <div class="form-section-intro">
+                    <h2 id="equipment-title">Work with what you have</h2>
+                    <p>Select every item available to you. Leave all unchecked for bodyweight training.</p>
+                </div>
+                <fieldset>
+                    <legend>Available equipment</legend>
+                    <div class="choice-grid">
+                        <label class="choice" th:each="value : ${equipmentChoices}">
+                            <input type="checkbox" th:field="*{equipment}" th:value="${value}">
+                            <span th:text="${value.label}"></span>
+                        </label>
+                    </div>
+                </fieldset>
+            </section>
+            <section class="form-section" aria-labelledby="increments-title">
+                <div class="form-section-intro"><h2 id="increments-title">Available load increases</h2>
+                    <p>Enter the smallest increase your equipment supports. Only selected equipment is used. Leave blank to use the shown default.</p>
+                    <p>Dumbbell increases are per hand; barbell increases are for the total load.</p></div>
+                <div class="form-fields">
+                    <div class="field" th:each="step : ${loadStepChoices}">
+                        <label th:for="${'step-' + step.key}" th:text="${step.key.label} + ' increase, kg'"></label>
+                        <input th:id="${'step-' + step.key}" th:field="*{loadSteps[__${step.key}__]}" type="number" min="0.01" max="100" step="0.01" th:placeholder="${step.value}">
+                    </div>
+                </div>
+            </section>
+            <section class="form-section" aria-labelledby="preferences-title">
+                <div class="form-section-intro">
+                    <h2 id="preferences-title">Make it yours</h2>
+                    <p>Preferences guide selection. Exclusions will always take priority.</p>
+                </div>
+                <div>
+                    <fieldset>
+                        <legend>Exclude movement categories <span class="field-help">Optional</span></legend>
+                        <div class="choice-grid">
+                            <label class="choice" th:each="value : ${movements}">
+                                <input type="checkbox" th:field="*{excludedMovements}" th:value="${value}">
+                                <span th:text="${value.label}"></span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <details class="exercise-preferences">
+                        <summary>Choose preferred or excluded exercises</summary>
+                        <p class="field-help">Choose one rule per exercise. Leave both unchecked for no preference.</p>
+                        <div class="table-scroll" role="region" aria-label="Exercise preferences" tabindex="0">
+                            <table>
+                                <caption class="visually-hidden">Optional exercise preferences and exclusions</caption>
+                                <thead><tr><th scope="col">Exercise</th><th scope="col">Prefer</th><th scope="col">Exclude</th></tr></thead>
+                                <tbody>
+                                <tr th:each="exercise : ${exerciseChoices}">
+                                    <th scope="row" th:text="${exercise.name}"></th>
+                                    <td><input type="checkbox" th:field="*{preferredExerciseIds}" th:value="${exercise.id}" th:aria-label="'Prefer ' + ${exercise.name}"></td>
+                                    <td><input type="checkbox" th:field="*{excludedExerciseIds}" th:value="${exercise.id}" th:aria-label="'Exclude ' + ${exercise.name}"></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            </section>
+            <div class="form-actions">
+                <button class="button" type="submit">Save profile</button>
+                <p class="field-help">Save changes before <a th:href="@{/plans}">generating your plan</a>.</p>
+            </div>
+        </form>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+</body>
+</html>

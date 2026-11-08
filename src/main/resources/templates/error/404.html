@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Page not found')}"></head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" class="error-content" tabindex="-1">
+        <h1>This page isn’t here.</h1>
+        <p>The link may be outdated, or the address may be incorrect.</p>
+        <a class="button" th:href="@{/}">Return to home</a>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+</body>
+</html>

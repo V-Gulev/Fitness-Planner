@@ -1,0 +1,19 @@
+{
+  "version": "planner-config-v1",
+  "warmupSeconds": 300,
+  "maxExercisesPerDay": 8,
+  "maxSetsPerDay": 32,
+  "minRecoveryGapDays": 2,
+  "secondaryHalfCredits": 1,
+  "volumes": {
+    "BEGINNER": {"major": 8, "accessory": 4},
+    "INTERMEDIATE": {"major": 10, "accessory": 6},
+    "ADVANCED": {"major": 12, "accessory": 8}
+  },
+  "goals": {
+    "HYPERTROPHY": {"volumePercent": 100, "compound": {"min": 6, "max": 10, "restSeconds": 120}, "isolation": {"min": 10, "max": 15, "restSeconds": 60}, "compoundSuitability": 1, "isolationSuitability": 1},
+    "STRENGTH": {"volumePercent": 75, "compound": {"min": 4, "max": 6, "restSeconds": 180}, "isolation": {"min": 8, "max": 12, "restSeconds": 90}, "compoundSuitability": 1, "isolationSuitability": 0.4},
+    "GENERAL_FITNESS": {"volumePercent": 75, "compound": {"min": 8, "max": 12, "restSeconds": 90}, "isolation": {"min": 10, "max": 15, "restSeconds": 60}, "compoundSuitability": 1, "isolationSuitability": 0.6}
+  },
+  "weights": {"muscle": 5, "goal": 1, "experience": 0.5, "preference": 0.5, "novelty": 0.5, "redundancy": 1, "fatigue": 1, "overshoot": 3}
+}

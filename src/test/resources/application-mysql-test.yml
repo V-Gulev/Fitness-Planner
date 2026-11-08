@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    # The database name is deliberately fixed and distinct from the application database.
+    url: jdbc:mysql://${DB_TEST_HOST:127.0.0.1}:${DB_TEST_PORT:3306}/fitness_planner_test?connectionTimeZone=UTC
+    username: ${DB_TEST_USERNAME}
+    password: ${DB_TEST_PASSWORD}

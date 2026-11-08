@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My training plan')}"></head>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" class="workspace" tabindex="-1">
+        <div class="page-intro">
+            <h1>Your week,<br>with a plan.</h1>
+            <p>Training built around your saved schedule, equipment, and exercise choices.</p>
+        </div>
+        <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
+        <div class="feedback feedback-error" role="alert" th:if="${generationProblems}">
+            <p>We couldn’t generate a replacement plan.</p>
+            <ul><li th:each="problem : ${generationProblems}" th:text="${problem}"></li></ul>
+            <p th:if="${page.plan != null}">Your saved plan has been kept.</p>
+            <a th:href="@{/profile}">Review your profile</a> · <a th:href="@{/plans}">Reload this page</a>
+        </div>
+        <section class="plan-generation" aria-labelledby="generation-title">
+            <div th:if="${page.profile == null}">
+                <h2 id="generation-title">Save your profile first.</h2>
+                <p>Your training days, time limit, and equipment give the planner its starting point.</p>
+                <a class="button" th:href="@{/profile}">Set up your fitness profile</a>
+            </div>
+            <div th:if="${page.profile != null}">
+                <h2 id="generation-title" th:text="${page.plan == null} ? 'Build your first week.' : 'Plan from your current profile.'"></h2>
+                <p th:text="${page.profile.trainingDays()} + ' selected days · up to ' + ${page.profile.sessionMinutes} + ' minutes per session'"></p>
+                <form th:action="@{/plans}" th:object="${generationForm}" method="post">
+                    <input type="hidden" th:field="*{profileVersion}">
+                    <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
+                        <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+                        <a th:href="@{/plans}">Reload before generating again</a>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="button" type="submit" th:text="${page.plan == null} ? 'Generate my plan' : 'Generate a new version'"></button>
+                        <a th:href="@{/profile}">Edit fitness profile</a>
+                    </div>
+                    <p class="field-help">A new version preserves your earlier plans. It does not guess your starting weights.</p>
+                </form>
+            </div>
+        </section>
+        <article th:if="${page.plan != null}" th:with="plan=${page.plan}" class="saved-plan" aria-labelledby="saved-plan-title">
+            <div class="saved-plan-heading">
+                <h2 id="saved-plan-title" th:text="${plan.active} ? 'Your current plan' : 'An earlier plan'"></h2>
+                <p class="field-help" th:text="'Created ' + ${plan.createdLabel} + ' · Europe/Sofia'"></p>
+            </div>
+            <p th:unless="${plan.active}">You’re viewing a saved version. <a th:href="@{/plans}">Return to the current plan</a>.</p>
+            <p class="feedback feedback-error" th:if="${plan.profileChanged}">Your profile differs from this plan’s inputs. Review it before training and generate a new version to use your latest choices.</p>
+            <div class="plan-explanation">
+                <p th:if="${plan.status.name() == 'DEGRADED'}"><strong>Volume targets are not fully matched.</strong> Hard constraints passed at generation; the volume table shows the remaining shortfalls and excess.</p>
+                <p th:if="${plan.status.name() == 'VALID'}"><strong>Volume targets match.</strong> Hard constraints passed at generation.</p>
+                <details>
+                    <summary>Why this weekly structure?</summary>
+                    <p th:text="${plan.structure}"></p>
+                    <ul><li th:each="reason : ${plan.diagnostics}" th:text="${reason}"></li></ul>
+                    <p>Selection balances volume coverage, preferences, variety, and estimated fatigue. It is a bounded rule-based method, with no guarantee of an optimal plan.</p>
+                </details>
+            </div>
+            <section class="workout-day" th:each="day, state : ${plan.days}" th:id="'plan-day-' + ${day.id}" th:aria-labelledby="'workout-day-' + ${state.index}">
+                <div class="workout-day-heading">
+                    <div><h2 th:id="'workout-day-' + ${state.index}" th:text="${day.weekday}"></h2><p th:text="${day.type}"></p></div>
+                    <p th:text="'About ' + ${day.estimatedMinutes} + ' min'"></p>
+                </div>
+                <p th:if="${plan.active and !plan.profileChanged}"><a class="button button-secondary" th:href="@{/workouts/new/{id}(id=${day.id})}">Start workout</a></p>
+                <div class="table-scroll plan-table-scroll" role="region" th:aria-label="${day.weekday} + ' workout'" tabindex="0">
+                    <table>
+                        <caption class="visually-hidden" th:text="${day.weekday} + ' prescribed exercises'"></caption>
+                        <thead><tr><th scope="col">Exercise</th><th scope="col">Sets</th><th scope="col">Reps</th><th scope="col">Rest</th></tr></thead>
+                        <tbody><tr th:each="exercise : ${day.exercises}">
+                            <th scope="row"><strong th:text="${exercise.name}"></strong><p class="field-help" th:text="${exercise.muscle}"></p>
+                                <details class="selection-reason"><summary>Why selected</summary><p th:text="${exercise.explanation}"></p></details>
+                            </th>
+                            <td th:text="${exercise.sets}"></td><td class="rep-range" th:text="${exercise.reps}"></td><td class="rep-range" th:text="${exercise.restSeconds} + ' s'"></td>
+                        </tr></tbody>
+                    </table>
+                </div>
+            </section>
+            <p class="field-help" th:text="'Time includes about ' + ${plan.warmupMinutes} + ' minutes of warm-up per session. Execution time is estimated; equipment queues and individual pace can change it.'"></p>
+            <section class="weekly-volume" aria-labelledby="volume-title">
+                <h2 id="volume-title">Prescribed weekly volume</h2>
+                <p>These are modeled sets in the plan, not completed training. Volume targets are configurable planning assumptions.</p>
+                <div class="table-scroll plan-table-scroll" role="region" aria-label="Weekly muscle volume" tabindex="0">
+                    <table>
+                        <caption class="visually-hidden">Modeled weekly sets versus target by muscle group</caption>
+                        <thead><tr><th scope="col">Muscle</th><th scope="col">Target</th><th scope="col">Prescribed</th><th scope="col">Difference</th></tr></thead>
+                        <tbody><tr th:each="volume : ${plan.volumes}"><th scope="row" th:text="${volume.muscle}"></th><td th:text="${volume.target}"></td><td th:text="${volume.prescribed}"></td><td th:text="${volume.difference}"></td></tr></tbody>
+                    </table>
+                </div>
+                <p class="field-help" th:text="'Each primary set counts as 1; secondary participation counts as ' + ${plan.secondaryCredit} + '. Recovery spacing checks primary muscles only, using a repeating seven-day week.'"></p>
+            </section>
+        </article>
+        <section class="plan-history" aria-labelledby="history-title" th:unless="${#lists.isEmpty(page.history)}">
+            <h2 id="history-title">Recent plan versions</h2>
+            <ul><li th:each="version : ${page.history}"><a th:href="@{/plans/{id}(id=${version.id})}" th:text="'Plan ' + ${version.id} + ' · ' + ${version.createdLabel}"></a><span class="field-help" th:if="${version.active}"> · Current</span></li></ul>
+            <p class="field-help">Showing up to 10 recent versions.</p>
+        </section>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+</body>
+</html>

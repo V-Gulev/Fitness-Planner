@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Start workout')}"></head>
+<body><div class="page-shell">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-intro"><h1>Ready for this session.</h1><p>Review the prescription and choose any suggested loads you want to use. Actual sets stay blank until you log them.</p></div>
+    <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <form class="date-choice" method="get" th:action="@{/workouts/new/{id}(id=${preview.dayId})}">
+        <div class="field"><label for="workout-date">Workout date</label><input id="workout-date" name="date" type="date" min="2000-01-01" th:max="${today}" th:value="${preview.date}" required></div>
+        <button class="button button-secondary" type="submit">Update date</button>
+    </form>
+    <p class="field-help">Suggestions use completed performances on or before this date. The workout date is fixed when you start; cancel a draft to choose a different date.</p>
+    <form th:action="@{/workouts}" th:object="${startWorkoutForm}" method="post">
+        <input type="hidden" th:field="*{dayId}"><input type="hidden" th:field="*{date}"><input type="hidden" th:field="*{submissionToken}"><input type="hidden" th:field="*{previewHash}">
+        <section class="workout-entry" th:each="choice : ${preview.choices}">
+            <h2 th:text="${choice.prescription.name}"></h2>
+            <p class="prescription-line" th:text="${choice.prescription.sets} + ' sets · ' + ${choice.prescription.repMin} + '–' + ${choice.prescription.repMax} + ' reps · ' + ${choice.prescription.restSeconds} + ' s rest'"></p>
+            <p class="field-help" th:text="${choice.prescription.loadType.label} + ', kg'"></p>
+            <p><strong th:text="${#strings.replace(choice.decision.action, '_', ' ')}"></strong><span th:if="${choice.decision.suggestedLoad != null}" th:text="' · ' + ${choice.decision.suggestedLoad} + ' kg'"></span></p>
+            <p class="suggestion-copy" th:text="${choice.decision.explanation}"></p>
+            <p class="field-help" th:if="${choice.prescription.loadStep != null}" th:text="'Available step: ' + ${choice.prescription.loadStep} + ' kg. Change increments in My profile.'"></p>
+            <p class="field-help" th:unless="${#lists.isEmpty(choice.decision.evidenceIds)}" th:text="'Recorded performance evidence: ' + ${choice.decision.evidenceIds}"></p>
+            <label class="choice" th:if="${choice.decision.acceptable()}"><input type="checkbox" th:field="*{acceptExerciseIds}" th:value="${choice.plannedExerciseId}"><span th:text="'Use ' + ${choice.decision.suggestedLoad} + ' kg as my target for ' + ${choice.prescription.name}"></span></label>
+            <a th:href="@{/workouts/exercises/{id}(id=${choice.prescription.exerciseId})}">See exercise history</a>
+        </section>
+        <div class="form-actions"><button class="button" type="submit" th:text="'Start workout · ' + ${preview.date}"></button><a th:href="@{/plans}">Back to my plan</a></div>
+    </form>
+</main><footer th:replace="~{fragments/layout :: footer}"></footer>
+</div></body></html>

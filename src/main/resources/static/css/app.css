@@ -274,3 +274,30 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
 @media (max-width: 760px) {
     .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.plan-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1.5rem; }
+.option-heading { display: grid; grid-template-rows: minmax(4.25rem, auto) auto; gap: .5rem; }
+.option-heading form { margin: 0 0 .6rem; }
+.option-week { padding: 0; list-style: none; }
+.option-week > li, .editor-day { border-top: 1px solid var(--line); }
+.option-week summary, .editor-day > summary { padding: .9rem 0; }
+.editor-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem; margin-block: 2rem 1rem; }
+.editor-actions .button:disabled { opacity: .55; cursor: default; }
+.editor-day { padding-bottom: .65rem; }
+.editor-day > summary { font-size: 1.1rem; }
+.editor-type { max-width: 24rem; margin-bottom: 1rem; }
+.editor-row { margin-block: 1rem; padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
+.editor-row legend { margin: 0; padding-inline: .4rem; color: var(--muted); }
+.editor-prescription { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; margin-top: .9rem; }
+.editor-prescription .field { margin: 0; }
+.editor-row .text-button { margin-top: .55rem; }
+.impact-day-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.impact-days details { border-bottom: 1px solid var(--line); }
+.impact-days { margin-bottom: 1rem; }
+.plan-editor #weekly-impact { margin-top: 1rem; padding-block: 1rem 1.5rem; }
+.impact-positive { color: #b9ed9e; font-weight: 600; }
+.impact-negative { color: #ffb4a9; font-weight: 600; }
+@media (max-width: 640px) {
+    .editor-prescription { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .impact-day-grid { grid-template-columns: 1fr; gap: 0; }
+}

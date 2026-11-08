@@ -30,14 +30,26 @@ public class PlanPublisher {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Long publish(Long owner, PlanInputReader.Inputs input, Result result, String algorithmVersion) {
+        return save(owner, input, result, algorithmVersion, null);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public Long publishEdited(Long owner, PlanInputReader.Inputs input, Result result, Long basePlanId) {
+        return save(owner, input, result, "manual-v1", Objects.requireNonNull(basePlanId));
+    }
+
+    private Long save(Long owner, PlanInputReader.Inputs input, Result result, String algorithmVersion, Long basePlanId) {
         if (!owner.equals(input.profile().userId()) || !result.publishable() || result.plan() == null) {
             throw new IllegalArgumentException("Only a valid owned planning result can be published.");
         }
         var profile = profiles.lockOwner(owner).orElseThrow(MissingProfileException::new);
         var currentCatalog = catalog.snapshot();
         if (!Objects.equals(profile.getVersion(), input.profile().version())
+                || (basePlanId != null && !basePlanId.equals(profile.getActivePlanId()))
                 || !codec.hash(currentCatalog).equals(codec.hash(input.catalog()))) throw new PlanConflictException();
-        var evaluation = evaluator.evaluate(input.profile(), currentCatalog, result.plan());
+        var evaluation = basePlanId == null
+                ? evaluator.evaluate(input.profile(), currentCatalog, result.plan())
+                : evaluator.evaluateEdited(input.profile(), currentCatalog, result.plan());
         if (evaluation.hardViolations() != 0) throw new IllegalArgumentException("The final plan failed independent hard-constraint validation.");
         var plan = new WorkoutPlan(owner, clock.instant(), algorithmVersion, config.version(),
                 codec.hash(input.catalog()), codec.hash(config), codec.profileHash(input.profile()), input.profile().version(),

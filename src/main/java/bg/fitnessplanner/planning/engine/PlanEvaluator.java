@@ -13,6 +13,14 @@ public final class PlanEvaluator {
     public PlanEvaluator(PlannerConfig config) { this.config = config; }
 
     public Evaluation evaluate(ProfileSnapshot profile, List<ExerciseSnapshot> catalog, Plan plan) {
+        return evaluate(profile, catalog, plan, false);
+    }
+
+    public Evaluation evaluateEdited(ProfileSnapshot profile, List<ExerciseSnapshot> catalog, Plan plan) {
+        return evaluate(profile, catalog, plan, true);
+    }
+
+    private Evaluation evaluate(ProfileSnapshot profile, List<ExerciseSnapshot> catalog, Plan plan, boolean edited) {
         PlanningRules.validateAndSort(profile, catalog);
         var known = PlanningRules.byId(catalog);
         Map<String, Integer> violations = new TreeMap<>();
@@ -40,8 +48,12 @@ public final class PlanEvaluator {
                 if (e.difficulty().ordinal() > profile.experience().ordinal()) hit(violations, "catalog_skill");
                 if (day.type() == null || !day.type().allows(e.primaryMuscle())) hit(violations, "day_type");
                 var expected = PlanningRules.prescribe(e, profile, item.sets(), config, "", null);
-                if (item.sets() < 2 || item.sets() > 4 || item.repMin() != expected.repMin()
-                        || item.repMax() != expected.repMax() || item.restSeconds() != expected.restSeconds()) {
+                boolean invalidRepsOrRest = edited
+                        ? item.repMin() < 1 || item.repMax() < item.repMin() || item.repMax() > 50
+                                || item.restSeconds() < 0 || item.restSeconds() > 600
+                        : item.repMin() != expected.repMin() || item.repMax() != expected.repMax()
+                                || item.restSeconds() != expected.restSeconds();
+                if (item.sets() < 2 || item.sets() > 4 || invalidRepsOrRest) {
                     hit(violations, "prescription");
                     continue;
                 }

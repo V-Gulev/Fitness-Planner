@@ -21,12 +21,21 @@ public final class ScoredPlanner implements Planner {
 
     @Override
     public Result generate(ProfileSnapshot profile, List<ExerciseSnapshot> catalog) {
+        return search(profile, catalog, false).getFirst();
+    }
+
+    /** Returns up to three distinct prescriptions in the same order used to choose the winner. */
+    public List<Result> candidates(ProfileSnapshot profile, List<ExerciseSnapshot> catalog) {
+        return search(profile, catalog, true);
+    }
+
+    private List<Result> search(ProfileSnapshot profile, List<ExerciseSnapshot> catalog, boolean alternatives) {
         List<ExerciseSnapshot> sorted;
         try { sorted = PlanningRules.validateAndSort(profile, catalog); }
-        catch (IllegalArgumentException invalid) { return new Result(Status.INVALID_INPUT, null, null, List.of(invalid.getMessage()), 0, 0); }
+        catch (IllegalArgumentException invalid) { return List.of(new Result(Status.INVALID_INPUT, null, null, List.of(invalid.getMessage()), 0, 0)); }
         var eligible = sorted.stream().filter(e -> PlanningRules.eligible(e, profile)).toList();
         var target = PlanningRules.targets(profile, config);
-        Result best = null;
+        var ranked = new ArrayList<Result>();
         long[] examined = {0};
         int candidates = 0;
         for (var structure : SplitCandidates.forFrequency(profile.trainingDays())) {
@@ -49,15 +58,25 @@ public final class ScoredPlanner implements Planner {
             Evaluation quality = evaluator.evaluate(profile, sorted, plan);
             if (quality.hardViolations() != 0) continue;
             Result result = new Result(quality.status(), plan, quality, List.of(), candidates, examined[0]);
-            if (best == null || compare(result, best) < 0) best = result;
+            if (alternatives || ranked.isEmpty()) {
+                ranked.add(result);
+            } else if (compare(result, ranked.getFirst()) < 0) {
+                ranked.set(0, result);
+            }
         }
-        if (best == null) return new Result(Status.INFEASIBLE, null, null,
+        if (ranked.isEmpty()) return List.of(new Result(Status.INFEASIBLE, null, null,
                 List.of("No plan found with a nonempty workout on every selected day while respecting equipment, exclusions, time and primary-muscle spacing.",
-                        "Try different weekdays, more time or equipment, or fewer exclusions. This bounded heuristic does not prove that no solution exists."), candidates, examined[0]);
-        return new Result(best.status(), best.plan(), best.evaluation(), List.of(
-                "Evaluated " + candidates + " candidate structures using your actual weekdays and eligible catalog.",
+                        "Try different weekdays, more time or equipment, or fewer exclusions. This bounded heuristic does not prove that no solution exists."), candidates, examined[0]));
+        if (alternatives) ranked.sort(ScoredPlanner::compare);
+        var distinct = new HashSet<List<List<Prescription>>>();
+        int constructed = candidates;
+        return ranked.stream().filter(result -> !alternatives || distinct.add(result.plan().days().stream()
+                .map(day -> day.exercises().stream().map(item -> new Prescription(item.exerciseId(), item.sets()))
+                        .sorted(Comparator.comparing(Prescription::exerciseId)).toList()).toList()))
+                .limit(3).map(best -> new Result(best.status(), best.plan(), best.evaluation(), List.of(
+                "Evaluated " + constructed + " candidate structures using your actual weekdays and eligible catalog.",
                 best.status() == Status.DEGRADED ? "Hard constraints pass; some modeled weekly volume targets are under or over target. See the volume table."
-                        : "Hard constraints pass and modeled weekly volume targets match."), candidates, examined[0]);
+                        : "Hard constraints pass and modeled weekly volume targets match."), constructed, examined[0])).toList();
     }
 
     private Addition bestAddition(DraftPlan draft, List<ExerciseSnapshot> eligible,
@@ -99,6 +118,8 @@ public final class ScoredPlanner implements Planner {
                 .compare(a.evaluation(), b.evaluation());
         return comparison != 0 ? comparison : a.plan().candidateKey().compareTo(b.plan().candidateKey());
     }
+
+    private record Prescription(Long exerciseId, int sets) { }
 
     private record Addition(int day, Exercise exercise, Score score, int seconds, String code, int weekday) { }
     private static final Comparator<Addition> ADDITION_ORDER = Comparator

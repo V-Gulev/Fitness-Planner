@@ -286,6 +286,77 @@ class PlanningMySqlIT {
         assertThat(evaluator.evaluate(input.profile(), input.catalog(), result.plan()).hardViolations()).isZero();
     }
 
+    @Test
+    void choosesOneOfThreeWithoutPublishingPreviewsAndSavesAnEditedVersion() throws Exception {
+        Long owner = owner(true);
+        var account = principal(owner);
+        Long version = profiles.snapshot(owner).orElseThrow().version();
+        var response = mvc.perform(post("/plans/options").with(user(account)).with(csrf())
+                        .param("profileVersion", version.toString()))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Choose option 3")))
+                .andReturn().getModelAndView();
+        var choices = (PlanGenerationService.Choices) response.getModel().get("choices");
+        assertThat(choices.options()).hasSize(3);
+        assertThat(choices.options().getFirst()).isEqualTo(planner.generate(choices.input().profile(), choices.input().catalog()));
+        assertThat(plans.countByUserId(owner)).isZero();
+
+        var select = mvc.perform(post("/plans/select").with(user(account)).with(csrf())
+                        .param("profileVersion", version.toString()).param("token", choices.token())
+                        .param("candidate", choices.options().get(1).plan().candidateKey()))
+                .andExpect(status().is3xxRedirection()).andReturn();
+        String originalUrl = select.getResponse().getRedirectedUrl();
+        assertThat(plans.countByUserId(owner)).isEqualTo(1);
+
+        var editor = mvc.perform(get(originalUrl + "/edit").with(user(account)))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Preview weekly changes")))
+                .andReturn().getModelAndView();
+        var state = (PlanEditingService.Editor) editor.getModel().get("editor");
+        var original = state.base().days().getFirst().exercises().getFirst();
+        var preview = mvc.perform(editRequest(originalUrl, state, account, "preview", "", 0))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("What changed this week")))
+                .andReturn().getModelAndView();
+        var review = (PlanEditingService.Review) preview.getModel().get("review");
+        assertThat(review.problems()).isEmpty();
+        assertThat(review.impact().days().getFirst().changed()).isTrue();
+        assertThat(plans.countByUserId(owner)).isEqualTo(1);
+
+        mvc.perform(editRequest(originalUrl, state, account, "save", review.token(), 601))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Resolve these issues")));
+        assertThat(plans.countByUserId(owner)).isEqualTo(1);
+        var saved = mvc.perform(editRequest(originalUrl, state, account, "save", review.token(), 0))
+                .andExpect(status().is3xxRedirection()).andReturn();
+        assertThat(plans.countByUserId(owner)).isEqualTo(2);
+        var active = queries.page(owner, null).plan();
+        assertThat(active.algorithmVersion()).isEqualTo("manual-v1");
+        assertThat(active.days().getFirst().exercises().getFirst().restSeconds()).isZero();
+        assertThat(queries.page(owner, Long.valueOf(originalUrl.substring(7))).plan()
+                .days().getFirst().exercises().getFirst().restSeconds()).isEqualTo(original.restSeconds());
+        mvc.perform(get(saved.getResponse().getRedirectedUrl()).with(user(account))
+                        .flashAttrs(saved.getFlashMap()))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("What changed this week")));
+    }
+
+    private static org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder editRequest(
+            String path, PlanEditingService.Editor editor, AccountPrincipal account, String action, String token, int firstRest) {
+        var request = post(path + "/edit").with(user(account)).with(csrf())
+                .param("profileVersion", editor.input().profile().version().toString())
+                .param("action", action).param("previewToken", token);
+        boolean first = true;
+        for (var day : editor.base().days()) {
+            String suffix = "-" + day.weekday();
+            request.param("type" + suffix, day.type().name());
+            for (var exercise : day.exercises()) {
+                request.param("exercise" + suffix, exercise.exerciseId().toString())
+                        .param("sets" + suffix, Integer.toString(exercise.sets()))
+                        .param("min" + suffix, Integer.toString(exercise.repMin()))
+                        .param("max" + suffix, Integer.toString(exercise.repMax()))
+                        .param("rest" + suffix, Integer.toString(first ? firstRest : exercise.restSeconds()));
+                first = false;
+            }
+        }
+        return request;
+    }
+
     private Long owner(boolean savedProfile) {
         Long id = registration.register(UUID.randomUUID() + "@example.test", "planner-test-password-123");
         owners.add(id);

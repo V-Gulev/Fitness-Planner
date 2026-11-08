@@ -25,14 +25,14 @@
             <div th:if="${page.profile != null}">
                 <h2 id="generation-title" th:text="${page.plan == null} ? 'Build your first week.' : 'Plan from your current profile.'"></h2>
                 <p th:text="${page.profile.trainingDays()} + ' selected days · up to ' + ${page.profile.sessionMinutes} + ' minutes per session'"></p>
-                <form th:action="@{/plans}" th:object="${generationForm}" method="post">
+                <form th:action="@{/plans/options}" th:object="${generationForm}" method="post">
                     <input type="hidden" th:field="*{profileVersion}">
                     <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
                         <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
                         <a th:href="@{/plans}">Reload before generating again</a>
                     </div>
                     <div class="plan-actions">
-                        <button class="button" type="submit" th:text="${page.plan == null} ? 'Generate my plan' : 'Generate a new version'"></button>
+                        <button class="button" type="submit" th:text="${page.plan == null} ? 'Build plan options' : 'Build new plan options'"></button>
                         <a th:href="@{/profile}">Edit fitness profile</a>
                     </div>
                     <p class="field-help">A new version preserves your earlier plans. It does not guess your starting weights.</p>
@@ -46,6 +46,10 @@
             </div>
             <p th:unless="${plan.active}">You’re viewing a saved version. <a th:href="@{/plans}">Return to the current plan</a>.</p>
             <p class="feedback feedback-error" th:if="${plan.profileChanged}">Your profile differs from this plan’s inputs. Review it before training and generate a new version to use your latest choices.</p>
+            <p th:if="${plan.active and !plan.profileChanged}"><a class="button" th:href="@{/plans/{id}/edit(id=${plan.id})}">Edit this plan</a></p>
+            <div th:if="${editImpact != null}">
+                <section th:replace="~{planning/impact :: comparison(${editImpact})}"></section>
+            </div>
             <div class="plan-explanation">
                 <p th:if="${plan.status.name() == 'DEGRADED'}"><strong>Volume targets are not fully matched.</strong> Hard constraints passed at generation; the volume table shows the remaining shortfalls and excess.</p>
                 <p th:if="${plan.status.name() == 'VALID'}"><strong>Volume targets match.</strong> Hard constraints passed at generation.</p>
@@ -53,7 +57,7 @@
                     <summary>Why this weekly structure?</summary>
                     <p th:text="${plan.structure}"></p>
                     <ul><li th:each="reason : ${plan.diagnostics}" th:text="${reason}"></li></ul>
-                    <p>Selection balances volume coverage, preferences, variety, and estimated fatigue. It is a bounded rule-based method, with no guarantee of an optimal plan.</p>
+                    <p th:if="${plan.algorithmVersion != 'manual-v1'}">Selection balances volume coverage, preferences, variety, and estimated fatigue. It is a bounded rule-based method, with no guarantee of an optimal plan.</p>
                 </details>
             </div>
             <section class="workout-day" th:each="day, state : ${plan.days}" th:id="'plan-day-' + ${day.id}" th:aria-labelledby="'workout-day-' + ${state.index}">

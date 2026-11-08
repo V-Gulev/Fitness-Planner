@@ -87,6 +87,23 @@ public class WorkoutService {
                 form.getAcceptExerciseIds().contains(c.plannedExerciseId()) ? c.decision().suggestedLoad() : null));
         return sessions.saveAndFlush(session).getId();
     }
+    @Transactional
+    public Long quickStart(Long owner, Long dayId) {
+        var profile = profiles.lockOwner(owner).orElseThrow(() -> new WorkoutConflictException("Save a profile first."));
+        LocalDate date = today();
+        validDate(date);
+        Preview preview = preview(owner, dayId, date, profile);
+        if (preview.openSessionId() != null) return preview.openSessionId();
+        String token = UUID.randomUUID().toString();
+        var session = new WorkoutSession(owner, preview.planId(), dayId, date, clock.instant(), token, codec.json(config));
+        for (Choice c : preview.choices()) session.add(new ExercisePerformance(session, dayId, c.plannedExerciseId(),
+                c.prescription().exerciseId(), c.position(), codec.json(c.prescription()), codec.json(c.decision()), null));
+        return sessions.saveAndFlush(session).getId();
+    }
+    @Transactional(readOnly = true)
+    public Set<Long> openDraftDayIds(Long owner) {
+        return sessions.findDayIdsByStatus(owner, SessionStatus.IN_PROGRESS);
+    }
     @Transactional(readOnly = true)
     public Detail detail(Long owner, Long id) { return detail(owned(owner, id)); }
     private Detail detail(WorkoutSession s) {

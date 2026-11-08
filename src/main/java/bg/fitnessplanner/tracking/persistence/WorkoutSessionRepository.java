@@ -15,6 +15,8 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     @Query("select distinct s.workoutDayId from WorkoutSession s where s.userId = :owner and s.status = :status and s.sessionDate = :date")
     Set<Long> findDayIds(@Param("owner") Long owner, @Param("status") SessionStatus status,
                         @Param("date") java.time.LocalDate date);
+    @Query("select distinct s.workoutDayId from WorkoutSession s where s.userId = :owner and s.status = :status")
+    Set<Long> findDayIdsByStatus(@Param("owner") Long owner, @Param("status") SessionStatus status);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from WorkoutSession s where s.id = :id and s.userId = :owner")
     Optional<WorkoutSession> lockOwned(@Param("id") Long id, @Param("owner") Long owner);

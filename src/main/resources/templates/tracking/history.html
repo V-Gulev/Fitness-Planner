@@ -1,14 +1,72 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Workout history')}"></head>
+<head th:replace="~{fragments/layout :: head('Workouts')}"></head>
 <body><div class="page-shell"><header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="workspace" tabindex="-1">
-    <div class="page-intro"><h1>Your work, recorded.</h1><p>Resume a draft or review what you actually performed. Completed workouts preserve their original prescription and logged sets.</p></div>
+    <div class="page-intro">
+        <h1>Workouts</h1>
+        <p>Start a session directly from your plan, resume a draft, or review your completed training history.</p>
+    </div>
     <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
-    <p><a class="button" th:href="@{/plans}">Choose a workout from my plan</a></p>
-    <section class="empty-state" th:if="${#lists.isEmpty(history)}"><h2>No workouts recorded yet.</h2><p>Start a session from your current plan, then record your sets as you train.</p></section>
-    <section class="workout-entry" th:unless="${#lists.isEmpty(history)}"><h2>Recent workouts</h2>
-        <ul class="workout-history"><li th:each="item : ${history}"><a th:href="@{/workouts/{id}(id=${item.id})}" th:text="${item.date} + ' · Workout ' + ${item.id}"></a><span class="field-help" th:text="${#strings.replace(item.status, '_', ' ')} + ' · Plan ' + ${item.planId}"></span></li></ul>
+
+    <!-- Available workouts from active plan -->
+    <section class="available-workouts" aria-labelledby="available-workouts-title">
+        <div class="available-workouts-heading">
+            <h2 id="available-workouts-title">Start a workout</h2>
+            <p th:if="${plan != null and plan.active and !plan.profileChanged}" class="field-help">Click to begin logging immediately, or use preview for load suggestions.</p>
+        </div>
+
+        <div th:if="${plan == null}" class="empty-state">
+            <p>You don't have an active plan yet.</p>
+            <a class="button" th:href="@{/plans}">Create your training plan</a>
+        </div>
+
+        <div th:if="${plan != null and plan.profileChanged}" class="feedback feedback-error">
+            <p>Your profile differs from your active plan. Generate a new plan before starting a workout.</p>
+            <a th:href="@{/plans}">Go to plan options</a>
+        </div>
+
+        <div th:if="${plan != null and plan.active and !plan.profileChanged}" class="workout-cards-grid">
+            <article class="workout-card" th:each="day : ${plan.days}">
+                <div class="workout-card-header">
+                    <div>
+                        <h3 th:text="${day.weekday}"></h3>
+                        <p class="workout-card-type" th:text="${day.type}"></p>
+                    </div>
+                    <span class="workout-card-duration" th:text="'~' + ${day.estimatedMinutes} + ' min'"></span>
+                </div>
+                <ul class="workout-card-exercises">
+                    <li th:each="exercise : ${day.exercises}">
+                        <span class="exercise-card-name" th:text="${exercise.name}"></span>
+                        <span class="field-help" th:text="${exercise.sets} + ' × ' + ${exercise.reps}"></span>
+                    </li>
+                </ul>
+                <div class="workout-card-footer">
+                    <form th:action="@{/workouts/start/{id}(id=${day.id})}" method="post">
+                        <button class="button" type="submit"
+                                th:text="${openDayIds != null and openDayIds.contains(day.id)} ? 'Resume workout' : 'Start workout'"></button>
+                    </form>
+                    <a class="text-button" th:href="@{/workouts/new/{id}(id=${day.id})}">Preview &amp; options</a>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Workout history -->
+    <section class="empty-state" th:if="${#lists.isEmpty(history)}">
+        <h2>No workouts recorded yet.</h2>
+        <p>Start a session above from your current plan, then record your sets as you train.</p>
+    </section>
+    <section class="workout-entry workout-history-section" th:unless="${#lists.isEmpty(history)}">
+        <h2>Recent workouts</h2>
+        <ul class="workout-history">
+            <li th:each="item : ${history}">
+                <a th:href="@{/workouts/{id}(id=${item.id})}" th:text="${item.date} + ' · Workout ' + ${item.id}"></a>
+                <span class="field-help" th:text="${#strings.replace(item.status, '_', ' ')} + ' · Plan ' + ${item.planId}"></span>
+            </li>
+        </ul>
         <p class="field-help">Showing up to 20 recent workouts. Cancelled drafts are excluded from progression evidence.</p>
     </section>
-</main><footer th:replace="~{fragments/layout :: footer}"></footer></div></body></html>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</div></body></html>

@@ -1,6 +1,7 @@
 package bg.fitnessplanner.tracking.web;
 
 import bg.fitnessplanner.account.application.AccountPrincipal;
+import bg.fitnessplanner.planning.application.PlanQueryService;
 import bg.fitnessplanner.tracking.application.*;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,8 +19,14 @@ import java.util.UUID;
 public class WorkoutController {
     private final WorkoutService workouts;
     private final bg.fitnessplanner.catalog.application.CatalogService catalog;
-    public WorkoutController(WorkoutService workouts, bg.fitnessplanner.catalog.application.CatalogService catalog) {
-        this.workouts = workouts; this.catalog = catalog;
+    private final PlanQueryService plans;
+
+    public WorkoutController(WorkoutService workouts,
+                             bg.fitnessplanner.catalog.application.CatalogService catalog,
+                             PlanQueryService plans) {
+        this.workouts = workouts;
+        this.catalog = catalog;
+        this.plans = plans;
     }
     @InitBinder("startWorkoutForm") void bindStart(WebDataBinder binder) {
         binder.setAllowedFields("dayId", "date", "submissionToken", "previewHash", "acceptExerciseIds");
@@ -30,7 +37,23 @@ public class WorkoutController {
                 "performances[*].sets[*].reps", "performances[*].sets[*].weightKg", "performances[*].sets[*].rir");
     }
     @GetMapping("/workouts") String history(@AuthenticationPrincipal AccountPrincipal account, Model model) {
-        model.addAttribute("history", workouts.history(account.getAccountId())); return "tracking/history";
+        Long owner = account.getAccountId();
+        model.addAttribute("history", workouts.history(owner));
+        model.addAttribute("plan", plans.page(owner, null).plan());
+        model.addAttribute("openDayIds", workouts.openDraftDayIds(owner));
+        return "tracking/history";
+    }
+    @PostMapping("/workouts/start/{dayId}") String quickStart(@AuthenticationPrincipal AccountPrincipal account,
+            @PathVariable Long dayId, RedirectAttributes redirect) {
+        try {
+            return "redirect:/workouts/" + workouts.quickStart(account.getAccountId(), dayId);
+        } catch (WorkoutConflictException | WorkoutInputException problem) {
+            redirect.addFlashAttribute("notice", problem.getMessage());
+            return "redirect:/workouts";
+        }
+    }
+    @GetMapping("/workouts/start/{dayId}") String startRedirect(@PathVariable Long dayId) {
+        return "redirect:/workouts/new/" + dayId;
     }
     @GetMapping("/workouts/new/{dayId}") String preview(@AuthenticationPrincipal AccountPrincipal account, @PathVariable Long dayId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date, Model model, RedirectAttributes redirect) {

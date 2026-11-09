@@ -712,12 +712,20 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
 .muscle-explorer-header h2 { margin: 0; font-size: 2rem; }
 .muscle-views { flex-wrap: nowrap; gap: .3rem; }
 .muscle-views button, .muscle-index button { padding-inline: .7rem; background: var(--background); font-size: .84rem; }
-.muscle-stage { position: relative; isolation: isolate; margin-block: .85rem .7rem; border: 1px solid var(--line); border-radius: var(--radius-input); background: var(--background); }
-.muscle-stage canvas { display: block; width: 100%; height: clamp(340px, 45vw, 485px); cursor: grab; touch-action: pan-y; }
+.muscle-stage { position: relative; isolation: isolate; margin-block: .85rem .7rem; border: 1px solid var(--line); border-radius: var(--radius-input); background: var(--background); overflow: hidden; }
+.muscle-stage canvas { display: block; width: 100%; height: clamp(340px, 45vw, 485px); cursor: grab; touch-action: none; outline: none; }
 .muscle-stage canvas:active { cursor: grabbing; }
-.muscle-stage-label { position: absolute; left: .8rem; bottom: .75rem; pointer-events: none; padding: .2rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--text); font-size: .8rem; }
-.muscle-layer-label { display: none; left: auto; right: .8rem; }
+.muscle-stage-label { position: absolute; left: .8rem; bottom: .75rem; pointer-events: none; padding: .2rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--text); font-size: .8rem; z-index: 2; transition: opacity .2s; }
+.muscle-layer-label { display: none; left: auto; right: .8rem; color: var(--accent); border-color: rgba(197, 231, 119, .4); z-index: 2; }
 .muscle-stage:has(canvas[data-layer="cutaway"]) .muscle-layer-label { display: block; }
+.muscle-stage-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; background: var(--background); z-index: 3; transition: opacity .4s ease; pointer-events: none; }
+.muscle-stage-loading.is-loaded { opacity: 0; }
+.stage-spinner { width: 32px; height: 32px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: stage-spin .8s linear infinite; }
+@keyframes stage-spin { to { transform: rotate(360deg); } }
+.stage-loading-text { font-size: .84rem; color: var(--muted); }
+.muscle-attribution { font-size: .72rem; color: var(--muted); margin-top: .4rem; text-align: right; }
+.muscle-attribution a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.muscle-attribution a:hover { color: var(--text); }
 .muscle-index { gap: .4rem; margin-top: .75rem; }
 .region-index { padding-bottom: .7rem; border-bottom: 1px solid var(--line); }
 .muscle-region-note { border: 1px solid var(--line); border-radius: var(--radius-input); padding: .85rem 1rem; margin-bottom: .8rem; color: var(--muted); font-size: .9rem; }

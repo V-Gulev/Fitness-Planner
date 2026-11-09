@@ -17,14 +17,20 @@
                         <button type="button" data-model-view="front" aria-pressed="true">Front</button>
                         <button type="button" data-model-view="back" aria-pressed="false">Back</button>
                         <button type="button" data-model-view="detail" aria-pressed="false">Chest detail</button>
+                        <button type="button" data-model-view="skeleton" aria-pressed="false" title="View skeletal structure">Skeleton</button>
                     </div>
                 </div>
                 <div class="muscle-stage">
+                    <div class="muscle-stage-loading" data-model-loading>
+                        <div class="stage-spinner" aria-hidden="true"></div>
+                        <span class="stage-loading-text">Loading 3D anatomy...</span>
+                    </div>
                     <canvas data-muscle-model aria-hidden="true"></canvas>
                     <span class="muscle-stage-label" data-stage-label aria-hidden="true">All muscles</span>
                     <span class="muscle-stage-label muscle-layer-label" aria-hidden="true">Cutaway</span>
                 </div>
                 <p class="field-help" data-model-help>Drag to rotate. Select a muscle group to see its regions.</p>
+                <p class="muscle-attribution"><small>3D Anatomy: <a href="https://github.com/Charleeh/ecorche" target="_blank" rel="noopener">Écorché</a> (CC BY-SA 4.0)</small></p>
                 <a class="muscle-results-link" href="#library-results" data-muscle-results>View matching exercises</a>
                 <div class="chip-group muscle-index region-index" role="group" aria-label="Choose a muscle region" data-region-index hidden>
                     <button type="button" th:each="value : ${regions}" th:data-muscle="${value.name()}" th:data-group="${value.group.name()}"

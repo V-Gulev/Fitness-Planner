@@ -4,10 +4,10 @@
 <body>
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
-    <main id="main" class="workspace" tabindex="-1">
+    <main id="main" class="workspace profile-workspace" tabindex="-1">
         <div class="page-intro">
-            <h1>Make room for<br>your training.</h1>
-            <p>Set the constraints that a useful plan needs to respect. You can update these choices any time.</p>
+            <h1>Training profile</h1>
+            <p>Set your goal, training days, and equipment to build a week that fits.</p>
         </div>
         <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
         <form class="profile-form" th:action="@{/profile}" th:object="${profileForm}" method="post">
@@ -17,29 +17,42 @@
                 <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
                 <a th:if="${#fields.hasErrors('version')}" th:href="@{/profile}">Reload your saved profile</a>
             </div>
+            <div class="profile-layout">
+            <div class="profile-sections">
             <section class="form-section" aria-labelledby="basics-title">
                 <div class="form-section-intro">
                     <h2 id="basics-title">Your starting point</h2>
                     <p>Choose the goal and experience level that fit your current training.</p>
                 </div>
-                <div class="form-fields">
-                    <div class="field">
-                        <label for="experience">Training experience</label>
-                        <select id="experience" th:field="*{experience}" required>
-                            <option value="">Choose experience</option>
-                            <option th:each="value : ${experiences}" th:value="${value}" th:text="${value.label}"></option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="goal">Primary goal</label>
-                        <select id="goal" th:field="*{goal}" required>
-                            <option value="">Choose goal</option>
-                            <option th:each="value : ${goals}" th:value="${value}" th:text="${value.label}"></option>
-                        </select>
-                    </div>
-                    <div class="field">
-                        <label for="sessionMinutes">Session length, in minutes</label>
-                        <input id="sessionMinutes" th:field="*{sessionMinutes}" type="number" min="20" max="120" required>
+                <div class="profile-basics">
+                    <fieldset>
+                        <legend>Primary goal</legend>
+                        <div class="profile-picks">
+                            <label class="profile-pick" th:each="value : ${goals}">
+                                <input type="radio" th:field="*{goal}" th:value="${value}" required>
+                                <span th:text="${value.label}"></span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <fieldset>
+                        <legend>Training experience</legend>
+                        <div class="profile-picks">
+                            <label class="profile-pick" th:each="value : ${experiences}">
+                                <input type="radio" th:field="*{experience}" th:value="${value}" required>
+                                <span th:text="${value.label}"></span>
+                            </label>
+                        </div>
+                    </fieldset>
+                    <div class="field profile-duration">
+                        <label for="sessionMinutes">Minutes per workout</label>
+                        <div class="profile-picks" data-duration-presets hidden>
+                            <button type="button" data-minutes="30">30 min</button>
+                            <button type="button" data-minutes="45">45 min</button>
+                            <button type="button" data-minutes="60">60 min</button>
+                            <button type="button" data-minutes="75">75 min</button>
+                        </div>
+                        <input id="sessionMinutes" th:field="*{sessionMinutes}" type="number" min="20" max="120" required aria-describedby="duration-help">
+                        <p id="duration-help" class="field-help">Set any length from 20 to 120 minutes.</p>
                     </div>
                 </div>
             </section>
@@ -50,10 +63,10 @@
                 </div>
                 <fieldset>
                     <legend>Training days <span class="field-help">Select 2–5 days</span></legend>
-                    <div class="choice-grid days-grid">
-                        <label class="choice" th:each="day : ${days}">
+                    <div class="profile-picks profile-days">
+                        <label class="profile-pick" th:each="day : ${days}">
                             <input type="checkbox" th:field="*{weekdays}" th:value="${day.value}">
-                            <span th:text="${day.label}"></span>
+                            <span><span aria-hidden="true" th:text="${#strings.substring(day.label,0,3)}"></span><span class="visually-hidden" th:text="${day.label}"></span></span>
                         </label>
                     </div>
                 </fieldset>
@@ -61,18 +74,20 @@
             <section class="form-section" aria-labelledby="equipment-title">
                 <div class="form-section-intro">
                     <h2 id="equipment-title">Work with what you have</h2>
-                    <p>Select every item available to you. Leave all unchecked for bodyweight training.</p>
+                    <p>Tap the equipment you can use. Leave the list empty for bodyweight training.</p>
                 </div>
                 <fieldset>
                     <legend>Available equipment</legend>
-                    <div class="choice-grid">
-                        <label class="choice" th:each="value : ${equipmentChoices}">
+                    <div class="profile-picks">
+                        <label class="profile-pick" th:each="value : ${equipmentChoices}">
                             <input type="checkbox" th:field="*{equipment}" th:value="${value}">
                             <span th:text="${value.label}"></span>
                         </label>
                     </div>
                 </fieldset>
             </section>
+            <details class="profile-disclosure" th:open="${#fields.hasErrors('loadSteps*')}">
+                <summary>Fine-tune load increments</summary>
             <section class="form-section" aria-labelledby="increments-title">
                 <div class="form-section-intro"><h2 id="increments-title">Available load increases</h2>
                     <p>Enter the smallest increase your equipment supports. Only selected equipment is used. Leave blank to use the shown default.</p>
@@ -84,6 +99,9 @@
                     </div>
                 </div>
             </section>
+            </details>
+            <details class="profile-disclosure" th:open="${#fields.hasErrors('preferredExerciseIds*') or #fields.hasErrors('excludedExerciseIds*') or #fields.hasErrors('excludedMovements*')}">
+                <summary>Exercise preferences and exclusions</summary>
             <section class="form-section" aria-labelledby="preferences-title">
                 <div class="form-section-intro">
                     <h2 id="preferences-title">Make it yours</h2>
@@ -92,39 +110,50 @@
                 <div>
                     <fieldset>
                         <legend>Exclude movement categories <span class="field-help">Optional</span></legend>
-                        <div class="choice-grid">
-                            <label class="choice" th:each="value : ${movements}">
+                        <div class="profile-picks">
+                            <label class="profile-pick" th:each="value : ${movements}">
                                 <input type="checkbox" th:field="*{excludedMovements}" th:value="${value}">
                                 <span th:text="${value.label}"></span>
                             </label>
                         </div>
                     </fieldset>
-                    <details class="exercise-preferences">
-                        <summary>Choose preferred or excluded exercises</summary>
-                        <p class="field-help">Choose one rule per exercise. Leave both unchecked for no preference.</p>
-                        <div class="table-scroll" role="region" aria-label="Exercise preferences" tabindex="0">
-                            <table>
-                                <caption class="visually-hidden">Optional exercise preferences and exclusions</caption>
-                                <thead><tr><th scope="col">Exercise</th><th scope="col">Prefer</th><th scope="col">Exclude</th></tr></thead>
-                                <tbody>
-                                <tr th:each="exercise : ${exerciseChoices}">
-                                    <th scope="row" th:text="${exercise.name}"></th>
-                                    <td><input type="checkbox" th:field="*{preferredExerciseIds}" th:value="${exercise.id}" th:aria-label="'Prefer ' + ${exercise.name}"></td>
-                                    <td><input type="checkbox" th:field="*{excludedExerciseIds}" th:value="${exercise.id}" th:aria-label="'Exclude ' + ${exercise.name}"></td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
+                    <div class="exercise-preferences">
+                        <h3>Individual exercises</h3>
+                        <p class="field-help">Choose Prefer or Exclude. Tap the selected option again to clear it.</p>
+                        <label class="field profile-search" hidden>Find an exercise
+                            <input type="search" data-exercise-search placeholder="Search by name">
+                        </label>
+                        <p class="field-help" data-no-exercises hidden>No exercises match that search.</p>
+                        <ul class="profile-exercises">
+                            <li th:each="exercise : ${exerciseChoices}" data-exercise>
+                                <span th:text="${exercise.name}"></span>
+                                <div class="profile-picks">
+                                    <label class="profile-pick"><input type="checkbox" th:field="*{preferredExerciseIds}" th:value="${exercise.id}" th:aria-label="'Prefer ' + ${exercise.name}"><span>Prefer</span></label>
+                                    <label class="profile-pick"><input type="checkbox" th:field="*{excludedExerciseIds}" th:value="${exercise.id}" th:aria-label="'Exclude ' + ${exercise.name}"><span>Exclude</span></label>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </section>
-            <div class="form-actions">
+            </details>
+            </div>
+            <aside class="profile-summary" aria-labelledby="summary-title">
+                <h2 id="summary-title">Your training setup</h2>
+                <dl data-profile-summary hidden>
+                    <div><dt>Goal</dt><dd data-summary-goal></dd></div>
+                    <div><dt>Schedule</dt><dd data-summary-days></dd></div>
+                    <div><dt>Session length</dt><dd data-summary-time></dd></div>
+                    <div><dt>Equipment</dt><dd data-summary-equipment></dd></div>
+                </dl>
                 <button class="button" type="submit">Save profile</button>
-                <p class="field-help">Save changes before <a th:href="@{/plans}">generating your plan</a>.</p>
+                <p class="field-help">Save your choices before <a th:href="@{/plans}">building a plan</a>.</p>
+            </aside>
             </div>
         </form>
     </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
+<script th:src="@{/js/profile.js}" defer></script>
 </body>
 </html>

@@ -615,3 +615,53 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
     border-top: 1px solid var(--line);
     padding-top: 2.5rem;
 }
+
+/* Training profile */
+.profile-workspace .page-intro { margin-bottom: 2rem; }
+.profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem); gap: 2rem; align-items: start; }
+.profile-workspace .form-section { display: block; padding: 1.5rem; border: 1px solid var(--line); border-radius: 16px; margin-bottom: 1rem; }
+.profile-workspace .form-section-intro p { max-width: 64ch; }
+.profile-basics { display: grid; gap: 1.25rem; }
+.profile-workspace legend { margin-bottom: .55rem; }
+.profile-picks { display: flex; flex-wrap: wrap; gap: .55rem; }
+.profile-pick { display: inline-flex; position: relative; min-width: 0; cursor: pointer; }
+.profile-pick input[type="checkbox"], .profile-pick input[type="radio"] { min-height: 0; position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
+.profile-pick > span, .profile-picks button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; padding: .55rem .95rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); font-weight: 600; font-size: .9rem; }
+.profile-pick:hover > span, .profile-picks button:hover { border-color: var(--muted); }
+.profile-pick input:checked ~ span, .profile-picks button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: var(--background); }
+.profile-pick input:focus-visible ~ span { outline: 2px solid var(--accent); outline-offset: 3px; }
+.profile-days .profile-pick > span { min-width: 3.25rem; }
+.profile-duration #sessionMinutes { max-width: 8rem; }
+.profile-disclosure { border: 1px solid var(--line); border-radius: 16px; margin-bottom: 1rem; }
+.profile-disclosure > summary { padding: 1rem 1.5rem; font-weight: 600; }
+.profile-disclosure > .form-section { border: 0; margin: 0; padding-top: .5rem; }
+.profile-search { margin-block: .9rem; }
+.profile-exercises { padding: 0; margin-bottom: 0; list-style: none; max-height: 26rem; overflow-y: auto; }
+.profile-exercises li { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); padding: .65rem .3rem; }
+.profile-summary { position: sticky; top: 1.25rem; padding: 1.4rem; background: var(--surface); border-radius: 16px; }
+.profile-summary h2 { font-size: 2rem; }
+.profile-summary dl { margin: 0 0 1.25rem; }
+.profile-summary dl div { display: flex; justify-content: space-between; gap: .65rem; padding: .65rem 0; border-bottom: 1px solid var(--line); }
+.profile-summary dt, .profile-summary dd { font-size: .88rem; margin: 0; }
+.profile-summary dd { text-align: right; font-weight: 600; }
+.profile-summary .button { width: 100%; border-radius: 999px; margin-bottom: .6rem; }
+@media (forced-colors: active) {
+    .profile-pick input:checked ~ span, .profile-picks button[aria-pressed="true"] {
+        forced-color-adjust: none;
+        border-color: Highlight;
+        background: Highlight;
+        color: HighlightText;
+    }
+    .profile-pick input:focus-visible ~ span, .profile-picks button:focus-visible {
+        outline: 2px solid Highlight;
+        outline-offset: 3px;
+    }
+}
+@media (max-width: 780px) {
+    .profile-layout { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+    .profile-summary { position: static; }
+}
+@media (max-width: 440px) {
+    .profile-workspace .form-section, .profile-summary { padding: 1.05rem; }
+    .profile-disclosure > summary { padding-inline: 1.05rem; }
+}

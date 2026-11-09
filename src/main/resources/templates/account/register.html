@@ -5,35 +5,166 @@
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
     <main id="main" class="account-layout" tabindex="-1">
-        <div class="account-intro">
-            <h1>Start with<br>your goals.</h1>
-            <p>Create an account to save your training days, equipment, and exercise preferences.</p>
-            <p>Already have an account? <a th:href="@{/login}">Sign in</a>.</p>
-        </div>
-        <form class="account-form training-panel" th:action="@{/register}" th:object="${registrationForm}" method="post">
-            <h2>Create your account</h2>
-            <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
-                <p>Please check the following:</p>
-                <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+        <div class="account-intro auth-showcase">
+            <nav class="auth-nav-pill-wrapper" aria-label="Account access options">
+                <a th:href="@{/login}" class="auth-nav-pill">Sign in</a>
+                <a th:href="@{/register}" class="auth-nav-pill is-active" aria-current="page">Create account</a>
+            </nav>
+            <div class="auth-headline-block">
+                <h1>Start with<br><span>your goals.</span></h1>
+                <p class="auth-lead">Create an account to configure your training days, equipment, and exercise preferences. We generate explainable weekly routines tailored to you.</p>
             </div>
+            <div class="auth-telemetry" aria-hidden="true">
+                <svg class="auth-training-graphic" viewBox="0 0 360 64" fill="none">
+                    <line x1="16" y1="32" x2="344" y2="32" stroke="var(--line)" stroke-width="2"/>
+                    <rect x="36" y="16" width="10" height="32" rx="2" fill="var(--line)"/>
+                    <rect x="50" y="22" width="6" height="20" rx="1.5" fill="var(--line)"/>
+                    <rect x="314" y="16" width="10" height="32" rx="2" fill="var(--line)"/>
+                    <rect x="304" y="22" width="6" height="20" rx="1.5" fill="var(--line)"/>
+                    <path class="pulse-trace" d="M70 32h60l12-14 10 28 14-20 10 10 14-4h110" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle class="pulse-target" cx="180" cy="36" r="4" fill="var(--accent)"/>
+                </svg>
+                <ul class="auth-highlights">
+                    <li class="auth-highlight-item">
+                        <svg class="auth-highlight-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <rect x="3" y="4" width="14" height="12" rx="2" stroke="currentColor" stroke-width="2"/>
+                            <path d="M7 8h6M7 12h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <strong>Equipment-adapted generation</strong>
+                            <span>From barbell racks to bodyweight-only home sessions.</span>
+                        </div>
+                    </li>
+                    <li class="auth-highlight-item">
+                        <svg class="auth-highlight-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/>
+                            <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <div>
+                            <strong>Session duration limits</strong>
+                            <span>Workouts designed to fit strictly within your available time window.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <blockquote class="auth-quote">
+                <p>“A considered approach to strength training.”</p>
+            </blockquote>
+        </div>
+        <form class="account-form auth-card training-panel" th:action="@{/register}" th:object="${registrationForm}" method="post">
+            <div class="auth-card-header">
+                <div class="auth-card-badge">
+                    <span class="auth-badge-dot" aria-hidden="true"></span>
+                    <span>New Registration</span>
+                </div>
+                <h2>Create your account</h2>
+                <p class="auth-card-subtitle">Join to build and progress your resistance training plan.</p>
+            </div>
+
+            <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
+                <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
+                    <path d="M10 6v5M10 14h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <div>
+                    <strong>Please check the following:</strong>
+                    <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+                </div>
+            </div>
+
             <div class="field">
                 <label for="email">Email address</label>
-                <input id="email" type="email" th:field="*{email}" maxlength="254" autocomplete="username" required>
+                <div class="input-affix-wrapper">
+                    <svg class="input-leading-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <rect x="2.5" y="4.5" width="15" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="m3 5.5 7 5 7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <input id="email" type="email" th:field="*{email}" maxlength="254" autocomplete="username" placeholder="name@example.com" required>
+                </div>
             </div>
+
             <div class="field">
-                <label for="password">Password</label>
-                <input id="password" name="password" type="password" minlength="10" maxlength="64"
-                       autocomplete="new-password" aria-describedby="password-help" required>
+                <div class="field-label-row">
+                    <label for="password">Password</label>
+                </div>
+                <div class="input-affix-wrapper">
+                    <svg class="input-leading-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M6.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <input id="password" name="password" type="password" minlength="10" maxlength="64"
+                           autocomplete="new-password" aria-describedby="password-help" placeholder="At least 10 characters" required>
+                    <button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false" title="Show password">
+                        <svg class="icon-eye-open" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M1.5 10s3-5.5 8.5-5.5 8.5 5.5 8.5 5.5-3 5.5-8.5 5.5S1.5 10 1.5 10z" stroke="currentColor" stroke-width="1.8"/>
+                            <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                        </svg>
+                        <svg class="icon-eye-closed" viewBox="0 0 20 20" fill="none" style="display: none;" aria-hidden="true">
+                            <path d="m2 2 16 16M8.5 8.7a2.5 2.5 0 0 0 3.3 3.3M5.5 6.2C3.8 7.3 2.5 8.8 1.5 10c1.7 3.1 5 5.5 8.5 5.5 1.5 0 2.9-.4 4.1-1.1M10 4.5c3.5 0 6.8 2.4 8.5 5.5-.7 1.3-1.7 2.4-2.8 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="password-strength-panel" aria-live="polite">
+                    <div class="strength-meter-header">
+                        <span class="meter-title">Security strength</span>
+                        <span class="meter-status" data-strength-text>Enter password</span>
+                    </div>
+                    <div class="strength-track" data-strength-bar data-score="0">
+                        <span class="strength-segment"></span>
+                        <span class="strength-segment"></span>
+                        <span class="strength-segment"></span>
+                        <span class="strength-segment"></span>
+                    </div>
+                    <div class="strength-checklist">
+                        <span class="req-chip" data-req="length" aria-checked="false">
+                            <svg class="req-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            10–64 characters
+                        </span>
+                        <span class="req-chip" data-req="variety" aria-checked="false">
+                            <svg class="req-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m3.5 8 3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            Letters &amp; numbers
+                        </span>
+                    </div>
+                </div>
                 <p class="field-help" id="password-help">Use 10–64 characters. Choose a password unique to this account.</p>
             </div>
+
             <div class="field">
-                <label for="confirmPassword">Confirm password</label>
-                <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" required>
+                <div class="field-label-row">
+                    <label for="confirmPassword">Confirm password</label>
+                    <span class="password-match-badge" data-match-status aria-live="polite"></span>
+                </div>
+                <div class="input-affix-wrapper">
+                    <svg class="input-leading-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <rect x="3.5" y="8.5" width="13" height="9" rx="2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M6.5 8.5V6a3.5 3.5 0 0 1 7 0v2.5" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" placeholder="Repeat your password" required>
+                    <button type="button" class="password-toggle" data-password-toggle aria-label="Show password" aria-pressed="false" title="Show password">
+                        <svg class="icon-eye-open" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M1.5 10s3-5.5 8.5-5.5 8.5 5.5 8.5 5.5-3 5.5-8.5 5.5S1.5 10 1.5 10z" stroke="currentColor" stroke-width="1.8"/>
+                            <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/>
+                        </svg>
+                        <svg class="icon-eye-closed" viewBox="0 0 20 20" fill="none" style="display: none;" aria-hidden="true">
+                            <path d="m2 2 16 16M8.5 8.7a2.5 2.5 0 0 0 3.3 3.3M5.5 6.2C3.8 7.3 2.5 8.8 1.5 10c1.7 3.1 5 5.5 8.5 5.5 1.5 0 2.9-.4 4.1-1.1M10 4.5c3.5 0 6.8 2.4 8.5 5.5-.7 1.3-1.7 2.4-2.8 3.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <button class="button" type="submit">Create account</button>
+
+            <button class="button auth-submit-btn" type="submit">
+                <span>Create account</span>
+                <svg class="submit-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="submit-spinner" hidden aria-hidden="true"></span>
+            </button>
+
+            <p class="auth-switch-prompt">Already have an account? <a th:href="@{/login}">Sign in</a>.</p>
         </form>
     </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
+<script th:src="@{/js/account-auth.js}" defer></script>
 </body>
 </html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="comparison(impact)" class="training-panel weekly-impact" id="weekly-impact" aria-labelledby="impact-title">
+    <h2 id="impact-title">What changed this week</h2>
+    <p>Green means modeled muscle volume moved closer to its target. Red means it moved farther away. The day details list exercises that changed.</p>
+    <p th:unless="${impact.changed()}">The workout prescription stayed the same.</p>
+    <div class="impact-days">
+        <details th:each="day : ${impact.days}" th:if="${day.changed()}" open>
+            <summary th:text="${day.label()}"></summary>
+            <div class="impact-day-grid">
+                <div><h3>Before</h3><p th:text="${day.beforeType} + ' · ' + ${(day.beforeSeconds + 59) / 60} + ' min'"></p>
+                    <ul><li th:each="exercise : ${day.removedOrUpdated()}" th:text="${exercise}"></li></ul></div>
+                <div><h3>After</h3><p th:text="${day.afterType} + ' · ' + ${(day.afterSeconds + 59) / 60} + ' min'"></p>
+                    <ul><li th:each="exercise : ${day.addedOrUpdated()}" th:text="${exercise}"></li></ul></div>
+            </div>
+        </details>
+    </div>
+    <div class="table-scroll plan-table-scroll" role="region" aria-label="Weekly volume comparison" tabindex="0">
+        <table>
+            <caption class="visually-hidden">Modeled weekly sets and distance from target</caption>
+            <thead><tr><th scope="col">Muscle</th><th scope="col">Target</th><th scope="col">Before</th><th scope="col">After</th><th scope="col">Impact</th></tr></thead>
+            <tbody>
+            <tr th:each="muscle : ${impact.muscles}">
+                <th scope="row" th:text="${muscle.name}"></th><td th:text="${muscle.target}"></td>
+                <td th:text="${muscle.before}"></td><td th:text="${muscle.after}"></td>
+                <td th:class="${muscle.impact > 0 ? 'impact-positive' : (muscle.impact < 0 ? 'impact-negative' : '')}"
+                    th:text="${muscle.impact > 0 ? 'Closer' : (muscle.impact < 0 ? 'Farther' : 'Same distance')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+</body></html>

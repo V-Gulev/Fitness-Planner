@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Edit training plan')}"></head>
+<body><div class="page-shell">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-intro">
+        <h1>Edit your training week</h1>
+        <p>Change the split, swap or add exercises, and adjust sets, reps, and rest on your saved training days. Preview the impact before saving a new version.</p>
+    </div>
+    <p><a th:href="@{/plans/{id}(id=${planId})}">Back to saved plan</a></p>
+    <p th:if="${formProblem}" class="feedback feedback-error" role="alert" th:text="${formProblem}"></p>
+    <div th:if="${review != null and !review.problems.isEmpty()}" class="feedback feedback-error" role="alert" id="edit-problems" tabindex="-1">
+        <p>Resolve these issues before saving:</p>
+        <ul><li th:each="problem : ${review.problems}" th:text="${problem}"></li></ul>
+    </div>
+    <form th:action="@{/plans/{id}/edit(id=${planId})}" method="post" class="plan-editor">
+        <input type="hidden" name="profileVersion" th:value="${editor.input.profile.version}">
+        <input type="hidden" name="previewToken" th:value="${review == null ? '' : review.token}">
+        <div class="editor-actions">
+            <button class="button" type="submit" name="action" value="preview">Preview weekly changes</button>
+            <button class="button" th:if="${review != null and review.problems.isEmpty() and review.impact.changed()}"
+                    type="submit" name="action" value="save">Save edited plan</button>
+            <span data-edit-feedback role="status" class="field-help"></span>
+        </div>
+    <div th:if="${review != null and review.problems.isEmpty()}">
+        <section th:replace="~{planning/impact :: comparison(${review.impact})}"></section>
+    </div>
+        <details class="editor-day training-panel" th:each="day, i : ${draft.days}" th:open="${i.first or review != null}">
+            <summary th:text="${T(java.time.DayOfWeek).of(day.weekday).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).ENGLISH)} + ' · ' + ${day.type.label}"></summary>
+            <label class="field editor-type">Day type
+                <select th:name="'type-' + ${day.weekday}">
+                    <option th:each="type : ${dayTypes}" th:value="${type.name()}" th:text="${type.label}" th:selected="${type == day.type}"></option>
+                </select>
+            </label>
+            <div data-exercise-rows>
+                <th:block th:each="item : ${day.exercises}"><fieldset th:replace="~{planning/edit :: row(${day.weekday}, ${item})}"></fieldset></th:block>
+            </div>
+            <template><fieldset th:replace="~{planning/edit :: row(${day.weekday}, null)}"></fieldset></template>
+            <button class="text-button" type="button" data-add-exercise hidden>Add exercise</button>
+        </details>
+    </form>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+<script th:src="@{/js/plan-editor.js}" defer></script>
+<div th:remove="all">
+<fieldset class="editor-row" data-exercise-row th:fragment="row(weekday,item)">
+    <legend>Exercise</legend>
+    <label class="field">Movement
+        <select th:name="'exercise-' + ${weekday}" required>
+            <option value="" th:selected="${item == null}">Choose an exercise</option>
+            <option th:if="${item != null and !eligibleIds.contains(item.exerciseId)}"
+                    th:value="${item.exerciseId}" selected>Unavailable exercise</option>
+            <option th:each="exercise : ${editor.eligible}" th:value="${exercise.id}" th:text="${exercise.name}"
+                    th:selected="${item != null and item.exerciseId == exercise.id}"></option>
+        </select>
+    </label>
+    <div class="editor-prescription">
+        <label class="field">Sets<input type="number" min="2" max="4" required th:name="'sets-' + ${weekday}" th:value="${item == null ? 3 : item.sets}"></label>
+        <label class="field">Min reps<input type="number" min="1" max="50" required th:name="'min-' + ${weekday}" th:value="${item == null ? 8 : item.repMin}"></label>
+        <label class="field">Max reps<input type="number" min="1" max="50" required th:name="'max-' + ${weekday}" th:value="${item == null ? 12 : item.repMax}"></label>
+        <label class="field">Rest (s)<input type="number" min="0" max="600" required th:name="'rest-' + ${weekday}" th:value="${item == null ? 90 : item.restSeconds}"></label>
+    </div>
+    <button class="text-button" type="button" data-remove-exercise hidden>Remove exercise</button>
+</fieldset>
+</div>
+</body></html>

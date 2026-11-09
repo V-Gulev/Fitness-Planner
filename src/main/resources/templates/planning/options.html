@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Choose a training plan')}"></head>
+<body><div class="page-shell">
+<header th:replace="~{fragments/layout :: header}"></header>
+<main id="main" class="workspace" tabindex="-1">
+    <div class="page-intro">
+        <h1>Choose your training week</h1>
+        <p>Compare the available splits, session times, and weekly volume. Your selection becomes your current plan.</p>
+    </div>
+    <p><a th:href="@{/plans}">Back to my plan</a></p>
+    <section class="empty-state" th:if="${choices.options.isEmpty()}">
+        <h2>No plan fits these settings</h2>
+        <ul><li th:each="message : ${choices.diagnostics}" th:text="${message}"></li></ul>
+        <a th:href="@{/profile}">Review your profile</a>
+    </section>
+    <p class="field-help" th:if="${choices.options.size() == 1}">The search found one distinct workout prescription that fits your constraints.</p>
+    <div class="plan-options">
+    <section class="option-entry training-panel" th:each="option, i : ${choices.options}">
+        <div class="option-heading">
+            <div>
+                <h2 th:text="'Option ' + ${i.count}"></h2>
+                <p class="field-help" th:if="${i.first}">Closest to your modeled weekly targets</p>
+            </div>
+            <form th:action="@{/plans/select}" method="post">
+                <input type="hidden" name="profileVersion" th:value="${choices.input.profile.version}">
+                <input type="hidden" name="token" th:value="${choices.token}">
+                <input type="hidden" name="candidate" th:value="${option.plan.candidateKey}">
+                <button class="button" type="submit" th:text="'Choose option ' + ${i.count}"></button>
+            </form>
+        </div>
+        <p th:text="'Muscles covered: ' + ${option.evaluation.volumeHalfSets.size() - option.evaluation.missingMuscles} + ' of ' + ${option.evaluation.volumeHalfSets.size()}"></p>
+        <p class="field-help" th:text="'Weekly volume deviation: ' + ${#numbers.formatDecimal(option.evaluation.normalizedVolumeDeviation() * 100, 1, 1)} + '% of target volume'"></p>
+        <ul class="option-week">
+            <li th:each="day : ${option.plan.days}">
+                <details>
+                    <summary th:text="${T(java.time.DayOfWeek).of(day.weekday).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).ENGLISH)} + ' · ' + ${day.type.label} + ' · ' + ${(option.evaluation.daySeconds.get(day.weekday) + 59) / 60} + ' min'"></summary>
+                    <ul><li th:each="exercise : ${day.exercises}" th:text="${names.get(exercise.exerciseId)} + ' · ' + ${exercise.sets} + ' × ' + ${exercise.repMin} + '–' + ${exercise.repMax}"></li></ul>
+                </details>
+            </li>
+        </ul>
+    </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</div></body></html>

@@ -1,8 +1,8 @@
 package bg.fitnessplanner.catalog.web;
 
 import bg.fitnessplanner.catalog.application.CatalogService;
+import bg.fitnessplanner.catalog.application.ExerciseSnapshot;
 import bg.fitnessplanner.catalog.domain.MovementPattern;
-import bg.fitnessplanner.catalog.domain.MuscleGroup;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,17 +30,26 @@ public class CatalogController {
     @GetMapping("/exercises")
     String library(@Valid @ModelAttribute CatalogFilter filter, BindingResult errors,
                    Model model, HttpServletResponse response) {
-        model.addAttribute("muscles", MuscleGroup.values());
+        var targets = Arrays.stream(LibraryMuscle.values()).toList();
+        model.addAttribute("muscles", targets.stream().filter(target -> !target.isRegion()).toList());
+        model.addAttribute("regions", targets.stream().filter(LibraryMuscle::isRegion).toList());
         model.addAttribute("movements", MovementPattern.values());
+        var entries = catalog.snapshot();
+        model.addAttribute("catalogSize", entries.size());
         if (errors.hasErrors()) {
             response.setStatus(400);
             model.addAttribute("exercises", List.of());
         } else {
             String query = filter.getQ().toLowerCase(Locale.ROOT);
-            model.addAttribute("exercises", catalog.snapshot().stream()
+            var muscle = filter.getMuscle();
+            model.addAttribute("matchedMuscle", muscle);
+            model.addAttribute("exercises", entries.stream()
                     .filter(e -> e.name().toLowerCase(Locale.ROOT).contains(query))
-                    .filter(e -> filter.getMuscle() == null || e.primaryMuscle() == filter.getMuscle())
-                    .filter(e -> filter.getMovement() == null || e.movementPattern() == filter.getMovement()).toList());
+                    .filter(e -> muscle == null || muscle.matches(e))
+                    .filter(e -> filter.getMovement() == null || e.movementPattern() == filter.getMovement())
+                    .sorted(Comparator.comparing((ExerciseSnapshot e) -> muscle != null && !muscle.isPrimary(e))
+                            .thenComparing(ExerciseSnapshot::name, String.CASE_INSENSITIVE_ORDER))
+                    .toList());
         }
         return "catalog/library";
     }

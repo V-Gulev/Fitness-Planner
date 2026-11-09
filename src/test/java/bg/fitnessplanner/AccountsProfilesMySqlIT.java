@@ -6,6 +6,7 @@ import bg.fitnessplanner.account.application.RegistrationService;
 import bg.fitnessplanner.account.persistence.UserAccountRepository;
 import bg.fitnessplanner.catalog.application.CatalogService;
 import bg.fitnessplanner.catalog.domain.*;
+import bg.fitnessplanner.catalog.web.LibraryMuscle;
 import bg.fitnessplanner.profile.application.*;
 import bg.fitnessplanner.profile.domain.TrainingGoal;
 import bg.fitnessplanner.shared.domain.ExperienceLevel;
@@ -24,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -252,7 +254,7 @@ class AccountsProfilesMySqlIT {
     @Test
     void seededCatalogHasCompleteMetadataAndStableScenarioCodes() {
         var entries = catalog.snapshot();
-        assertThat(entries).hasSize(50);
+        assertThat(entries).hasSize(100);
         assertThat(entries).extracting(e -> e.code()).isSorted().doesNotHaveDuplicates()
                 .contains("BARBELL_BACK_SQUAT", "BARBELL_DEADLIFT", "DUMBBELL_GOBLET_SQUAT");
         assertThat(entries.stream().map(e -> e.primaryMuscle()).collect(Collectors.toSet()))
@@ -272,9 +274,28 @@ class AccountsProfilesMySqlIT {
 
     @Test
     void libraryFiltersPersistedCatalogAndRejectsInvalidFilters() throws Exception {
+        mvc.perform(get("/js/exercise-library.js")).andExpect(status().isOk());
+        mvc.perform(get("/js/muscle-model.js")).andExpect(status().isOk());
         mvc.perform(get("/exercises").param("q", "goblet").param("muscle", "QUADRICEPS"))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("Dumbbell goblet squat")))
                 .andExpect(content().string(not(containsString("Barbell bench press"))));
+        mvc.perform(get("/exercises").param("q", "incline dumbbell press").param("muscle", "TRICEPS"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Incline dumbbell press")))
+                .andExpect(content().string(containsString("Secondary target")));
+        mvc.perform(get("/exercises").param("muscle", "CHEST_UPPER"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Upper chest exercises")))
+                .andExpect(content().string(containsString("Incline dumbbell press")))
+                .andExpect(content().string(containsString("Regional emphasis")))
+                .andExpect(content().string(not(containsString("Barbell bench press"))));
+        for (String region : List.of("CHEST_MIDDLE", "CHEST_LOWER")) {
+            mvc.perform(get("/exercises").param("muscle", region))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("Barbell bench press")))
+                    .andExpect(content().string(containsString("Dumbbell bench press")))
+                    .andExpect(content().string(not(containsString("Incline dumbbell press"))));
+        }
         mvc.perform(get("/exercises").param("muscle", "MADE_UP"))
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/exercises").with(user(account())).with(csrf()))
@@ -282,10 +303,32 @@ class AccountsProfilesMySqlIT {
     }
 
     @Test
+    void everyLibraryMuscleGroupHasSourcedRegionsWithActiveExercises() throws Exception {
+        var entries = catalog.snapshot();
+        for (MuscleGroup group : MuscleGroup.values()) {
+            var regions = Arrays.stream(LibraryMuscle.values())
+                    .filter(region -> region.isRegion() && region.getGroup() == group).toList();
+            assertThat(regions).hasSizeGreaterThanOrEqualTo(2).allSatisfy(region -> {
+                assertThat(region.getAnatomy()).isNotBlank();
+                assertThat(region.getEvidence()).isNotBlank();
+                assertThat(region.getSourceUrl()).startsWith("https://");
+                assertThat(entries.stream().filter(region::matches)).isNotEmpty();
+            });
+        }
+        mvc.perform(get("/exercises").param("muscle", "GLUTES_MINIMUS"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Gluteus minimus exercises")))
+                .andExpect(content().string(containsString("Single-leg glute bridge")));
+        mvc.perform(get("/exercises").param("muscle", "BICEPS_SHORT"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Shared group exercise")));
+    }
+
+    @Test
     void migrationsAreUpToDateAndSeedsAreNotDuplicated() {
         assertThat(flyway.info().pending()).isEmpty();
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM exercise", Integer.class)).isEqualTo(50);
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1", Integer.class)).isEqualTo(5);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM exercise", Integer.class)).isEqualTo(100);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1", Integer.class)).isEqualTo(6);
     }
 
     private UserDetails account() {

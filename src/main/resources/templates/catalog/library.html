@@ -4,67 +4,117 @@
 <body>
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
-    <main id="main" class="workspace" tabindex="-1">
+    <main id="main" class="workspace library-workspace" tabindex="-1">
         <div class="page-intro">
-            <h1>Know your exercises.</h1>
-            <p>Explore movements, equipment, and execution cues. Open an exercise to see its details.</p>
+            <h1>Exercise library</h1>
+            <p>Explore <span th:text="${catalogSize}">100</span> exercises by muscle, movement, or name.</p>
         </div>
-        <form class="library-filters training-panel" th:action="@{/exercises}" th:object="${catalogFilter}" method="get">
-            <div class="field">
-                <label for="q">Search exercises</label>
-                <input id="q" th:field="*{q}" type="search" maxlength="100" placeholder="For example, dumbbell row">
-            </div>
-            <div class="field">
-                <label for="muscle">Primary muscle</label>
-                <select id="muscle" th:field="*{muscle}">
-                    <option value="">All muscles</option>
-                    <option th:each="value : ${muscles}" th:value="${value}" th:text="${value.label}"></option>
-                </select>
-            </div>
-            <div class="field">
-                <label for="movement">Movement category</label>
-                <select id="movement" th:field="*{movement}">
-                    <option value="">All movements</option>
-                    <option th:each="value : ${movements}" th:value="${value}" th:text="${value.label}"></option>
-                </select>
-            </div>
-            <button class="button" type="submit">Filter library</button>
-            <div class="feedback feedback-error filter-errors" role="alert" th:if="${#fields.hasErrors('*')}">
-                <p>Check your search and filter choices.</p>
-                <a th:href="@{/exercises}">Reset filters</a>
-            </div>
-        </form>
-        <div class="results-heading">
-            <p th:text="${#lists.size(exercises) == 1} ? '1 exercise' : ${#lists.size(exercises)} + ' exercises'">Exercises</p>
-            <a th:href="@{/exercises}">Reset filters</a>
-        </div>
-        <div class="empty-state" th:if="${#lists.isEmpty(exercises)}">
-            <h2>No exercises match these filters.</h2>
-            <p>Try a broader search or reset the filters to see the full library.</p>
-        </div>
-        <div class="exercise-list">
-            <details class="exercise-entry" th:each="exercise : ${exercises}">
-                <summary>
-                    <span class="exercise-name" th:text="${exercise.name}"></span>
-                    <span class="exercise-meta" th:text="${exercise.primaryMuscle.label} + ' · ' + ${exercise.difficulty.label}"></span>
-                </summary>
-                <div class="exercise-detail">
-                    <p th:text="${exercise.instructions}"></p>
-                    <dl>
-                        <div><dt>Equipment</dt><dd th:text="${exercise.equipmentLabel()}"></dd></div>
-                        <div><dt>Movement</dt><dd th:text="${exercise.movementPattern.label}"></dd></div>
-                        <div><dt>Classification</dt><dd th:text="${exercise.compound} ? 'Compound' : 'Isolation'"></dd></div>
-                        <div><dt>Load convention</dt><dd th:text="${exercise.loadType.label}"></dd></div>
-                        <div th:unless="${#sets.isEmpty(exercise.secondaryMuscles)}">
-                            <dt>Secondary muscles</dt>
-                            <dd><span th:each="muscle, state : ${exercise.secondaryMuscles}" th:text="${muscle.label} + (${state.last} ? '' : ', ')"></span></dd>
-                        </div>
-                    </dl>
+        <div class="library-layout">
+            <section class="muscle-explorer training-panel" aria-labelledby="muscle-map-title" data-muscle-explorer hidden>
+                <div class="muscle-explorer-header">
+                    <h2 id="muscle-map-title">Muscle map</h2>
+                    <div class="chip-group muscle-views" role="group" aria-label="Model view">
+                        <button type="button" data-model-view="front" aria-pressed="true">Front</button>
+                        <button type="button" data-model-view="back" aria-pressed="false">Back</button>
+                        <button type="button" data-model-view="detail" aria-pressed="false">Chest detail</button>
+                    </div>
                 </div>
-            </details>
+                <div class="muscle-stage">
+                    <canvas data-muscle-model aria-hidden="true"></canvas>
+                    <span class="muscle-stage-label" data-stage-label aria-hidden="true">All muscles</span>
+                    <span class="muscle-stage-label muscle-layer-label" aria-hidden="true">Cutaway</span>
+                </div>
+                <p class="field-help" data-model-help>Drag to rotate. Select a muscle group to see its regions.</p>
+                <a class="muscle-results-link" href="#library-results" data-muscle-results>View matching exercises</a>
+                <div class="chip-group muscle-index region-index" role="group" aria-label="Choose a muscle region" data-region-index hidden>
+                    <button type="button" th:each="value : ${regions}" th:data-muscle="${value.name()}" th:data-group="${value.group.name()}"
+                            th:text="${value.label}" aria-pressed="false" hidden></button>
+                </div>
+                <div class="chip-group muscle-index" role="group" aria-label="Choose a muscle group">
+                    <button type="button" data-muscle="" aria-pressed="true">All muscles</button>
+                    <button type="button" th:each="value : ${muscles}" th:data-muscle="${value.name()}" th:text="${value.label}" aria-pressed="false"></button>
+                </div>
+            </section>
+
+            <div class="library-content">
+                <form class="library-filters training-panel" th:action="@{/exercises}" th:object="${catalogFilter}" method="get" data-library-filters>
+                    <div class="field library-search">
+                        <label for="q">Search exercises</label>
+                        <input id="q" th:field="*{q}" type="search" maxlength="100" placeholder="Try dumbbell row">
+                    </div>
+                    <div class="field">
+                        <label for="muscle">Muscle group or region</label>
+                        <select id="muscle" th:field="*{muscle}">
+                            <option value="">All muscles</option>
+                            <option th:each="value : ${muscles}" th:value="${value}" th:text="${value.label}"></option>
+                            <optgroup label="Muscle regions">
+                                <option th:each="value : ${regions}" th:value="${value}" th:text="${value.label}"></option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="movement">Movement category</label>
+                        <select id="movement" th:field="*{movement}">
+                            <option value="">All movements</option>
+                            <option th:each="value : ${movements}" th:value="${value}" th:text="${value.label}"></option>
+                        </select>
+                    </div>
+                    <button class="button" type="submit">Filter library</button>
+                    <div class="feedback feedback-error filter-errors" role="alert" th:if="${#fields.hasErrors('*')}">
+                        <p>Check your search and filter choices.</p>
+                        <a th:href="@{/exercises}">Clear filters</a>
+                    </div>
+                </form>
+                <p class="visually-hidden" data-library-status role="status"></p>
+                <section id="library-results" aria-labelledby="library-results-title" tabindex="-1">
+                    <div class="results-heading">
+                        <div>
+                            <h2 id="library-results-title" th:text="${matchedMuscle != null ? matchedMuscle.label + ' exercises' : 'Exercises'}">Exercises</h2>
+                            <p data-results-count th:text="${#lists.size(exercises) == 1} ? '1 exercise' : ${#lists.size(exercises)} + ' exercises'"></p>
+                        </div>
+                        <a th:href="@{/exercises}" data-clear-filters>Clear filters</a>
+                    </div>
+                    <div class="muscle-region-note" th:if="${matchedMuscle != null and matchedMuscle.region}">
+                        <p><strong th:text="${matchedMuscle.anatomy}"></strong></p>
+                        <p th:text="${matchedMuscle.evidence}"></p>
+                        <p>
+                            <a th:if="${matchedMuscle.group.name() == 'CHEST'}" href="https://pubmed.ncbi.nlm.nih.gov/19291757/">Pectoralis major anatomy</a>
+                            <a th:href="${matchedMuscle.sourceUrl}">Read the source</a>
+                        </p>
+                    </div>
+                    <div class="empty-state" th:if="${#lists.isEmpty(exercises)}">
+                        <h3>No exercises match these filters.</h3>
+                        <p>Try a broader search or clear the filters to see the full library.</p>
+                    </div>
+                    <div class="exercise-list">
+                        <details class="exercise-entry" th:each="exercise : ${exercises}">
+                            <summary>
+                                <span class="exercise-name" th:text="${exercise.name}"></span>
+                                <span class="exercise-meta" th:text="${exercise.primaryMuscle.label} + ' · ' + ${exercise.difficulty.label}"></span>
+                                <span class="exercise-target" th:if="${matchedMuscle != null}"
+                                      th:text="${matchedMuscle.region ? matchedMuscle.regionTag : (matchedMuscle.isPrimary(exercise) ? 'Primary target' : 'Secondary target')}"></span>
+                            </summary>
+                            <div class="exercise-detail">
+                                <p th:text="${exercise.instructions}"></p>
+                                <dl>
+                                    <div><dt>Equipment</dt><dd th:text="${exercise.equipmentLabel()}"></dd></div>
+                                    <div><dt>Movement</dt><dd th:text="${exercise.movementPattern.label}"></dd></div>
+                                    <div><dt>Classification</dt><dd th:text="${exercise.compound} ? 'Compound' : 'Isolation'"></dd></div>
+                                    <div><dt>Load convention</dt><dd th:text="${exercise.loadType.label}"></dd></div>
+                                    <div th:unless="${#sets.isEmpty(exercise.secondaryMuscles)}">
+                                        <dt>Secondary muscles</dt>
+                                        <dd><span th:each="muscle, state : ${exercise.secondaryMuscles}" th:text="${muscle.label} + (${state.last} ? '' : ', ')"></span></dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </details>
+                    </div>
+                </section>
+            </div>
         </div>
     </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
+<script type="module" th:src="@{/js/exercise-library.js}"></script>
 </body>
 </html>

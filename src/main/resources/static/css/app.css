@@ -699,3 +699,52 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
     .profile-workspace .form-section, .profile-summary { padding: 1.05rem; }
     .profile-disclosure > summary { padding-inline: 1.05rem; }
 }
+
+/* Exercise library */
+.library-workspace .page-intro { margin-bottom: 1.75rem; }
+.library-layout { display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1.4fr); align-items: start; gap: clamp(1.2rem, 3vw, 2.75rem); }
+.library-layout:has(.muscle-explorer[hidden]) { grid-template-columns: minmax(0, 1fr); }
+.library-content { min-width: 0; }
+.library-content .library-filters { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+.library-search { grid-column: 1 / -1; }
+.muscle-explorer { padding: clamp(.95rem, 2vw, 1.4rem); }
+.muscle-explorer-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; }
+.muscle-explorer-header h2 { margin: 0; font-size: 2rem; }
+.muscle-views { flex-wrap: nowrap; gap: .3rem; }
+.muscle-views button, .muscle-index button { padding-inline: .7rem; background: var(--background); font-size: .84rem; }
+.muscle-stage { position: relative; isolation: isolate; margin-block: .85rem .7rem; border: 1px solid var(--line); border-radius: var(--radius-input); background: var(--background); }
+.muscle-stage canvas { display: block; width: 100%; height: clamp(340px, 45vw, 485px); cursor: grab; touch-action: pan-y; }
+.muscle-stage canvas:active { cursor: grabbing; }
+.muscle-stage-label { position: absolute; left: .8rem; bottom: .75rem; pointer-events: none; padding: .2rem .65rem; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--text); font-size: .8rem; }
+.muscle-layer-label { display: none; left: auto; right: .8rem; }
+.muscle-stage:has(canvas[data-layer="cutaway"]) .muscle-layer-label { display: block; }
+.muscle-index { gap: .4rem; margin-top: .75rem; }
+.region-index { padding-bottom: .7rem; border-bottom: 1px solid var(--line); }
+.muscle-region-note { border: 1px solid var(--line); border-radius: var(--radius-input); padding: .85rem 1rem; margin-bottom: .8rem; color: var(--muted); font-size: .9rem; }
+.muscle-region-note p { margin-bottom: .45rem; }
+.muscle-region-note p:last-child { margin-bottom: 0; }
+.muscle-region-note strong { color: var(--text); }
+.muscle-region-note a + a { margin-left: .8rem; }
+.muscle-results-link { display: none; }
+.library-content .results-heading { align-items: center; margin-block: 1.65rem .8rem; }
+.library-content .results-heading h2 { color: var(--text); margin-bottom: .25rem; font-size: 2rem; }
+.library-content .results-heading > a { flex: none; }
+.exercise-target { display: inline-block; margin: .3rem 0 0 .55rem; padding: .1rem .5rem; border: 1px solid var(--line); border-radius: var(--radius-pill); color: var(--muted); font-size: .75rem; }
+.library-content #library-results[aria-busy="true"] .exercise-list { opacity: .7; }
+
+@media (min-width: 841px) and (min-height: 900px) {
+    .muscle-explorer { position: sticky; top: 1rem; }
+}
+@media (max-width: 1050px) {
+    .library-content .library-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .library-content .library-filters .button { grid-column: 1 / -1; }
+}
+@media (max-width: 840px) {
+    .library-layout { grid-template-columns: minmax(0, 1fr); }
+    .muscle-stage canvas { height: clamp(320px, 70vw, 430px); }
+    .muscle-results-link { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); font-weight: 600; }
+}
+@media (max-width: 440px) {
+    .library-content .library-filters { grid-template-columns: minmax(0, 1fr); }
+    .exercise-target { margin-left: 1.7rem; }
+}

@@ -17,7 +17,8 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/", "/register", "/login", "/exercises", "/error",
-                                "/css/**", "/fonts/**", "/favicon.svg").permitAll()
+                                "/css/**", "/fonts/**", "/favicon.svg",
+                                "/js/exercise-library.js", "/js/muscle-model.js").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(login -> login.loginPage("/login").defaultSuccessUrl("/dashboard", true).permitAll())
                 .logout(logout -> logout.logoutSuccessUrl("/login?logout"));

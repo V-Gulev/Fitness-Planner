@@ -38,7 +38,7 @@
     </section>
     <section th:unless="${#lists.isEmpty(history)}" aria-labelledby="sets-title">
         <h2 id="sets-title">Logged sets</h2>
-        <article class="workout-entry" th:each="item : ${history}">
+        <article class="workout-entry training-panel" th:each="item : ${history}">
             <h3><a th:href="@{/workouts/{id}(id=${item.sessionId})}" th:text="${item.date} + ' · Workout ' + ${item.sessionId}"></a></h3>
             <p class="field-help" th:if="${item.prescription.name != exerciseName}" th:text="${item.prescription.name}"></p>
             <p class="field-help" th:text="'Prescribed: ' + ${item.prescription.sets} + ' × ' + ${item.prescription.repMin} + '–' + ${item.prescription.repMax} + ' · ' + ${item.prescription.loadType.label}"></p>

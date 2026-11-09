@@ -5,9 +5,11 @@
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
     <main id="main" class="error-content" tabindex="-1">
-        <h1>Something went wrong.</h1>
-        <p>We couldn’t load this page. Return home and try again.</p>
-        <a class="button" th:href="@{/}">Return to home</a>
+        <div class="training-panel">
+            <h1>Something went wrong.</h1>
+            <p>We couldn’t load this page. Return home and try again.</p>
+            <a class="button" th:href="@{/}">Return to home</a>
+        </div>
     </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>

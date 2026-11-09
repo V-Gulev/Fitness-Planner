@@ -10,7 +10,7 @@
             <p>Create an account to save your training days, equipment, and exercise preferences.</p>
             <p>Already have an account? <a th:href="@{/login}">Sign in</a>.</p>
         </div>
-        <form class="account-form" th:action="@{/register}" th:object="${registrationForm}" method="post">
+        <form class="account-form training-panel" th:action="@{/register}" th:object="${registrationForm}" method="post">
             <h2>Create your account</h2>
             <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
                 <p>Please check the following:</p>

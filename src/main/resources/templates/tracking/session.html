@@ -14,7 +14,7 @@
         <input type="hidden" th:field="*{version}">
         <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}"><p>Your changes have not been saved:</p><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div>
         <p class="field-help" th:if="${workout.editable()}">Log work sets only. Enter reps and external load in kg; RIR is optional (0–10 reps in reserve). For bodyweight sets, enter 0 kg external load. Leave unused rows entirely blank.</p>
-        <section class="workout-entry" th:each="performance, pi : ${workout.performances}">
+        <section class="workout-entry training-panel" th:each="performance, pi : ${workout.performances}">
             <h2 th:text="${performance.prescription.name}"></h2>
             <p class="prescription-line" th:text="'Prescribed: ' + ${performance.prescription.sets} + ' sets · ' + ${performance.prescription.repMin} + '–' + ${performance.prescription.repMax} + ' reps · ' + ${performance.prescription.restSeconds} + ' s rest'"></p>
             <p class="field-help" th:text="${performance.prescription.loadType.label} + ', kg'"></p>

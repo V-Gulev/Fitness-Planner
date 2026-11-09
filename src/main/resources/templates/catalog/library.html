@@ -9,7 +9,7 @@
             <h1>Know your exercises.</h1>
             <p>Explore movements, equipment, and execution cues. Open an exercise to see its details.</p>
         </div>
-        <form class="library-filters" th:action="@{/exercises}" th:object="${catalogFilter}" method="get">
+        <form class="library-filters training-panel" th:action="@{/exercises}" th:object="${catalogFilter}" method="get">
             <div class="field">
                 <label for="q">Search exercises</label>
                 <input id="q" th:field="*{q}" type="search" maxlength="100" placeholder="For example, dumbbell row">

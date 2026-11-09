@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#171a17">
     <title th:text="${title} + ' · Intelligent Fitness Planner'">Intelligent Fitness Planner</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
     <link rel="stylesheet" th:href="@{/css/app.css}">
@@ -17,14 +18,14 @@
         </svg>
         <span>Intelligent<br>Fitness Planner</span>
     </a>
-    <nav aria-label="Main navigation">
+    <nav class="site-nav" aria-label="Main navigation">
         <a th:if="${signedIn}" th:href="@{/dashboard}" th:attr="aria-current=${navigationPath == '/dashboard' ? 'page' : null}">Dashboard</a>
-        <a th:href="@{/exercises}">Exercise library</a>
-        <a th:if="${signedIn}" th:href="@{/profile}">My profile</a>
-        <a th:if="${signedIn}" th:href="@{/plans}">My plan</a>
-        <a th:if="${signedIn}" th:href="@{/workouts}">Workouts</a>
-        <a th:unless="${signedIn}" th:href="@{/login}">Sign in</a>
-        <a th:unless="${signedIn}" th:href="@{/register}">Create account</a>
+        <a th:href="@{/exercises}" th:attr="aria-current=${navigationPath == '/exercises' ? 'page' : null}">Exercise library</a>
+        <a th:if="${signedIn}" th:href="@{/profile}" th:attr="aria-current=${navigationPath == '/profile' ? 'page' : null}">My profile</a>
+        <a th:if="${signedIn}" th:href="@{/plans}" th:attr="aria-current=${navigationPath == '/plans' ? 'page' : (#strings.startsWith(navigationPath, '/plans/') ? 'location' : null)}">My plan</a>
+        <a th:if="${signedIn}" th:href="@{/workouts}" th:attr="aria-current=${navigationPath == '/workouts' ? 'page' : (#strings.startsWith(navigationPath, '/workouts/') ? 'location' : null)}">Workouts</a>
+        <a th:unless="${signedIn}" th:href="@{/login}" th:attr="aria-current=${navigationPath == '/login' ? 'page' : null}">Sign in</a>
+        <a th:unless="${signedIn}" th:href="@{/register}" th:attr="aria-current=${navigationPath == '/register' ? 'page' : null}">Create account</a>
         <form th:if="${signedIn}" th:action="@{/logout}" method="post">
             <button class="text-button" type="submit">Sign out</button>
         </form>

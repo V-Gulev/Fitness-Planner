@@ -11,7 +11,7 @@
 
     <div class="dashboard-grid">
         <div>
-            <section class="dashboard-next" aria-labelledby="next-title">
+            <section class="dashboard-next training-panel" aria-labelledby="next-title">
                 <h2 id="next-title" th:text="${activity.draft != null} ? 'Pick up your workout' : (${next != null} ? 'Next scheduled workout' : 'Get ready to train')"></h2>
 
                 <div th:if="${activity.draft != null}">
@@ -60,7 +60,7 @@
                 </div>
             </section>
 
-            <section class="dashboard-plan workout-entry" aria-labelledby="current-title" th:if="${page.plan != null}">
+            <section class="dashboard-plan training-panel" aria-labelledby="current-title" th:if="${page.plan != null}">
                 <h2 id="current-title">Current plan</h2>
                 <p th:text="${page.plan.structure}"></p>
                 <p class="field-help" th:if="${page.plan.profileChanged}">This plan was generated before your latest profile changes.</p>
@@ -71,7 +71,7 @@
         </div>
 
         <div class="dashboard-activity">
-            <section aria-labelledby="week-title">
+            <section class="training-panel" aria-labelledby="week-title">
                 <h2 id="week-title">Logged this week</h2>
                 <p class="field-help" th:text="${#temporals.format(weekStart, 'd MMM')} + ' – ' + ${#temporals.format(today, 'd MMM yyyy')}"></p>
                 <dl class="dashboard-totals">
@@ -81,7 +81,7 @@
                 <p class="field-help">Counts use the workout date and sets in completed logs.</p>
             </section>
 
-            <section class="dashboard-history" aria-labelledby="recent-title">
+            <section class="dashboard-history training-panel" aria-labelledby="recent-title">
                 <h2 id="recent-title">Recent workouts</h2>
                 <p th:if="${#lists.isEmpty(activity.recent)}">Your drafts and completed workouts will appear here when you start logging.</p>
                 <ul class="workout-history" th:unless="${#lists.isEmpty(activity.recent)}">
@@ -93,7 +93,7 @@
                 <a th:unless="${#lists.isEmpty(activity.recent)}" th:href="@{/workouts}">View workout history</a>
             </section>
 
-            <section class="dashboard-history" aria-labelledby="exercise-title" th:unless="${#lists.isEmpty(activity.exercises)}">
+            <section class="dashboard-history training-panel" aria-labelledby="exercise-title" th:unless="${#lists.isEmpty(activity.exercises)}">
                 <h2 id="exercise-title">Exercise history</h2>
                 <p class="field-help">Exercises you logged in your latest completed workout.</p>
                 <ul class="dashboard-exercise-links">

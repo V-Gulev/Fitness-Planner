@@ -10,7 +10,7 @@
             <p>Your training starts with the time and equipment you have.</p>
             <p>New here? <a th:href="@{/register}">Create an account</a>.</p>
         </div>
-        <form class="account-form" th:action="@{/login}" method="post">
+        <form class="account-form training-panel" th:action="@{/login}" method="post">
             <h2>Sign in</h2>
             <p class="feedback feedback-error" role="alert" th:if="${param.error}">The email or password is incorrect. Please try again.</p>
             <p class="feedback" role="status" th:if="${param.registered}">Account created. Sign in to set up your profile.</p>

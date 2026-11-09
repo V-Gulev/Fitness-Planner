@@ -57,7 +57,7 @@
         <h2>No workouts recorded yet.</h2>
         <p>Start a session above from your current plan, then record your sets as you train.</p>
     </section>
-    <section class="workout-entry workout-history-section" th:unless="${#lists.isEmpty(history)}">
+    <section class="workout-entry training-panel" th:unless="${#lists.isEmpty(history)}">
         <h2>Recent workouts</h2>
         <ul class="workout-history">
             <li th:each="item : ${history}">

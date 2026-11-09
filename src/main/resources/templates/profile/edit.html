@@ -27,8 +27,8 @@
                 <div class="profile-basics">
                     <fieldset>
                         <legend>Primary goal</legend>
-                        <div class="profile-picks">
-                            <label class="profile-pick" th:each="value : ${goals}">
+                        <div class="chip-group">
+                            <label class="choice-chip" th:each="value : ${goals}">
                                 <input type="radio" th:field="*{goal}" th:value="${value}" required>
                                 <span th:text="${value.label}"></span>
                             </label>
@@ -36,8 +36,8 @@
                     </fieldset>
                     <fieldset>
                         <legend>Training experience</legend>
-                        <div class="profile-picks">
-                            <label class="profile-pick" th:each="value : ${experiences}">
+                        <div class="chip-group">
+                            <label class="choice-chip" th:each="value : ${experiences}">
                                 <input type="radio" th:field="*{experience}" th:value="${value}" required>
                                 <span th:text="${value.label}"></span>
                             </label>
@@ -45,7 +45,7 @@
                     </fieldset>
                     <div class="field profile-duration">
                         <label for="sessionMinutes">Minutes per workout</label>
-                        <div class="profile-picks" data-duration-presets hidden>
+                        <div class="chip-group" data-duration-presets hidden>
                             <button type="button" data-minutes="30">30 min</button>
                             <button type="button" data-minutes="45">45 min</button>
                             <button type="button" data-minutes="60">60 min</button>
@@ -63,8 +63,8 @@
                 </div>
                 <fieldset>
                     <legend>Training days <span class="field-help">Select 2–5 days</span></legend>
-                    <div class="profile-picks profile-days">
-                        <label class="profile-pick" th:each="day : ${days}">
+                    <div class="chip-group profile-days">
+                        <label class="choice-chip" th:each="day : ${days}">
                             <input type="checkbox" th:field="*{weekdays}" th:value="${day.value}">
                             <span><span aria-hidden="true" th:text="${#strings.substring(day.label,0,3)}"></span><span class="visually-hidden" th:text="${day.label}"></span></span>
                         </label>
@@ -78,8 +78,8 @@
                 </div>
                 <fieldset>
                     <legend>Available equipment</legend>
-                    <div class="profile-picks">
-                        <label class="profile-pick" th:each="value : ${equipmentChoices}">
+                    <div class="chip-group">
+                        <label class="choice-chip" th:each="value : ${equipmentChoices}">
                             <input type="checkbox" th:field="*{equipment}" th:value="${value}">
                             <span th:text="${value.label}"></span>
                         </label>
@@ -110,8 +110,8 @@
                 <div>
                     <fieldset>
                         <legend>Exclude movement categories <span class="field-help">Optional</span></legend>
-                        <div class="profile-picks">
-                            <label class="profile-pick" th:each="value : ${movements}">
+                        <div class="chip-group">
+                            <label class="choice-chip" th:each="value : ${movements}">
                                 <input type="checkbox" th:field="*{excludedMovements}" th:value="${value}">
                                 <span th:text="${value.label}"></span>
                             </label>
@@ -127,9 +127,9 @@
                         <ul class="profile-exercises">
                             <li th:each="exercise : ${exerciseChoices}" data-exercise>
                                 <span th:text="${exercise.name}"></span>
-                                <div class="profile-picks">
-                                    <label class="profile-pick"><input type="checkbox" th:field="*{preferredExerciseIds}" th:value="${exercise.id}" th:aria-label="'Prefer ' + ${exercise.name}"><span>Prefer</span></label>
-                                    <label class="profile-pick"><input type="checkbox" th:field="*{excludedExerciseIds}" th:value="${exercise.id}" th:aria-label="'Exclude ' + ${exercise.name}"><span>Exclude</span></label>
+                                <div class="chip-group">
+                                    <label class="choice-chip"><input type="checkbox" th:field="*{preferredExerciseIds}" th:value="${exercise.id}" th:aria-label="'Prefer ' + ${exercise.name}"><span>Prefer</span></label>
+                                    <label class="choice-chip"><input type="checkbox" th:field="*{excludedExerciseIds}" th:value="${exercise.id}" th:aria-label="'Exclude ' + ${exercise.name}"><span>Exclude</span></label>
                                 </div>
                             </li>
                         </ul>

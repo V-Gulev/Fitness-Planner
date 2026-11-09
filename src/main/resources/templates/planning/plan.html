@@ -17,7 +17,7 @@
         <div th:if="${page.profile == null}" class="page-intro">
             <h1>Your week,<br>with a plan.</h1>
             <p>Training built around your saved schedule, equipment, and exercise choices.</p>
-            <section class="plan-generation" aria-labelledby="generation-title">
+            <section class="plan-generation training-panel" aria-labelledby="generation-title">
                 <h2 id="generation-title">Save your profile first.</h2>
                 <p>Your training days, time limit, and equipment give the planner its starting point.</p>
                 <a class="button" th:href="@{/profile}">Set up your fitness profile</a>
@@ -28,7 +28,7 @@
         <div th:if="${page.profile != null and page.plan == null}" class="page-intro">
             <h1>Your week,<br>with a plan.</h1>
             <p>Training built around your saved schedule, equipment, and exercise choices.</p>
-            <section class="plan-generation" aria-labelledby="generation-title">
+            <section class="plan-generation training-panel" aria-labelledby="generation-title">
                 <h2 id="generation-title">Build your first week.</h2>
                 <p th:text="${page.profile.trainingDays()} + ' selected days · up to ' + ${page.profile.sessionMinutes} + ' minutes per session'"></p>
                 <form th:action="@{/plans/options}" th:object="${generationForm}" method="post">
@@ -139,7 +139,7 @@
         </article>
 
         <!-- Plan management actions — below the plan -->
-        <section th:if="${page.plan != null and page.profile != null}" class="plan-manage" aria-labelledby="manage-title">
+        <section th:if="${page.plan != null and page.profile != null}" class="plan-manage training-panel" aria-labelledby="manage-title">
             <h2 id="manage-title">Manage your plan</h2>
             <div class="plan-manage-actions">
                 <a th:if="${page.plan.active and !page.plan.profileChanged}" class="button" th:href="@{/plans/{id}/edit(id=${page.plan.id})}">Edit this plan</a>

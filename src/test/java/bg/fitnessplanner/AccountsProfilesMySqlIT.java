@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.formLogin;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestBuilders.logout;
@@ -300,6 +301,32 @@ class AccountsProfilesMySqlIT {
                 .andExpect(status().isBadRequest());
         mvc.perform(post("/exercises").with(user(account())).with(csrf()))
                 .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
+    void libraryPaginatesTheCatalogAndKeepsFiltersInPageLinks() throws Exception {
+        mvc.perform(get("/exercises"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("exercises", hasSize(6)))
+                .andExpect(content().string(containsString("Showing 1–6 of 100")))
+                .andExpect(content().string(containsString("page=2#library-results")));
+        mvc.perform(get("/exercises").param("page", "2"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("exercises", hasSize(6)))
+                .andExpect(content().string(containsString("Showing 7–12 of 100")));
+        mvc.perform(get("/exercises").param("page", "1000"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("exercises", hasSize(4)))
+                .andExpect(content().string(containsString("Showing 97–100 of 100")))
+                .andExpect(content().string(not(containsString("rel=\"next\""))));
+        mvc.perform(get("/exercises").param("q", "press").param("muscle", "CHEST").param("movement", "HORIZONTAL_PUSH"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("q=press&amp;muscle=CHEST&amp;movement=HORIZONTAL_PUSH&amp;page=2#library-results")));
+        mvc.perform(get("/exercises").param("q", "press").param("muscle", "CHEST")
+                        .param("movement", "HORIZONTAL_PUSH").param("page", "2"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("exercises", hasSize(1)))
+                .andExpect(content().string(containsString("Showing 7 of 7")));
     }
 
     @Test

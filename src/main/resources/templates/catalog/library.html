@@ -76,7 +76,7 @@
                     <div class="results-heading">
                         <div>
                             <h2 id="library-results-title" th:text="${matchedMuscle != null ? matchedMuscle.label + ' exercises' : 'Exercises'}">Exercises</h2>
-                            <p data-results-count th:text="${#lists.size(exercises) == 1} ? '1 exercise' : ${#lists.size(exercises)} + ' exercises'"></p>
+                            <p data-results-count th:text="${matchCount == 1} ? '1 exercise' : ${matchCount} + ' exercises'"></p>
                         </div>
                         <a th:href="@{/exercises}" data-clear-filters>Clear filters</a>
                     </div>
@@ -115,6 +115,17 @@
                             </div>
                         </details>
                     </div>
+                    <nav class="library-pagination" aria-label="Exercise result pages" th:if="${pageCount > 1}"
+                         th:with="query=${catalogFilter.q}, muscle=${catalogFilter.muscle}, movement=${catalogFilter.movement}">
+                        <p data-results-range
+                           th:text="${firstResult == lastResult} ? |Showing ${lastResult} of ${matchCount}| : |Showing ${firstResult}–${lastResult} of ${matchCount}|"></p>
+                        <div class="library-page-links">
+                            <a class="button button-secondary" rel="prev" data-library-page th:if="${page > 1}"
+                               th:href="@{/exercises#library-results(q=${query},muscle=${muscle},movement=${movement},page=${page - 1})}">Previous</a>
+                            <a class="button button-secondary" rel="next" data-library-page th:if="${page < pageCount}"
+                               th:href="@{/exercises#library-results(q=${query},muscle=${muscle},movement=${movement},page=${page + 1})}">Next</a>
+                        </div>
+                    </nav>
                 </section>
             </div>
         </div>

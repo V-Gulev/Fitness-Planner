@@ -134,8 +134,12 @@ async function loadResults(url, {push = true, focus = false, orient = true} = {}
         updateSelection(key, orient && (key !== selectedMuscle || (key && modelView !== 'detail')));
         const title = results.querySelector('h2').textContent;
         const count = updateResultsLink();
-        status.textContent = `${title}. ${count} found.`;
-        if (focus) results.focus();
+        const range = results.querySelector('[data-results-range]');
+        status.textContent = range ? `${title}. ${range.textContent}.` : `${title}. ${count} found.`;
+        if (focus) {
+            results.focus({preventScroll: true});
+            results.scrollIntoView({behavior: 'instant'});
+        }
     } catch (error) {
         if (!current.signal.aborted) location.assign(url);
     } finally {
@@ -152,12 +156,13 @@ form.addEventListener('submit', event => {
 });
 
 document.addEventListener('click', event => {
-    const reset = event.target.closest('[data-clear-filters]');
-    if (!reset || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest('[data-clear-filters], [data-library-page]');
+    if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    const url = new URL(reset.href);
-    fillFilters(url);
-    loadResults(url, {focus: true});
+    const url = new URL(link.href);
+    const reset = link.hasAttribute('data-clear-filters');
+    if (reset) fillFilters(url);
+    loadResults(url, {focus: true, orient: reset});
 });
 
 window.addEventListener('popstate', () => {

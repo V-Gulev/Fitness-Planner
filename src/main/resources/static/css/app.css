@@ -1841,6 +1841,9 @@ details[open] > summary .chevron-icon {
 .library-content .results-heading > a { flex: none; }
 .exercise-target { display: inline-block; margin: .3rem 0 0 .55rem; padding: .1rem .5rem; border: 1px solid var(--line); border-radius: var(--radius-pill); color: var(--muted); font-size: .75rem; }
 .library-content #library-results[aria-busy="true"] .exercise-list { opacity: .7; }
+.library-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; margin-top: 1rem; }
+.library-pagination p { margin: 0; color: var(--muted); font-size: .88rem; }
+.library-page-links { display: flex; flex-wrap: wrap; gap: .5rem; margin-inline-start: auto; }
 
 @media (min-width: 841px) and (min-height: 900px) {
     .muscle-explorer { position: sticky; top: 1rem; }

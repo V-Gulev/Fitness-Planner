@@ -5,47 +5,76 @@
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
     <main id="main" tabindex="-1">
-        <section class="introduction training-panel" aria-labelledby="page-title">
-            <div class="introduction-copy">
-                <h1 id="page-title">A stronger week<br>starts with a <span>plan.</span></h1>
-                <p class="lead">Your time. Your equipment. Your training goals.
-                    A clearer way to bring them together.</p>
-                <a class="button" th:href="${signedIn} ? @{/dashboard} : @{/register}">
-                    <span th:text="${signedIn} ? 'Open dashboard' : 'Create your profile'">Create your profile</span>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7"/>
-                    </svg>
-                </a>
+        <section class="home-hero" aria-labelledby="page-title">
+            <div class="home-intro">
+                <h1 id="page-title">A stronger week<br>starts with a plan.</h1>
+                <p>Build a strength training plan around your schedule, equipment, and goals. See why each exercise is there and adjust as you train.</p>
+                <div class="home-actions">
+                    <a class="button" th:href="${signedIn} ? @{/dashboard} : @{/register}"
+                       th:text="${signedIn} ? 'Open dashboard' : 'Create your profile'">Create your profile</a>
+                    <a class="home-text-link" href="#approach">How it works</a>
+                </div>
             </div>
-            <aside class="development-note" aria-labelledby="development-title">
-                <h2 id="development-title">Good training takes groundwork.</h2>
-                <p>Set up your fitness profile and explore the exercise library.
-                    Generate an explained weekly plan from your choices. Log actual sets and review explained load suggestions.</p>
-                <p><a href="#approach">Explore the planning approach</a>.</p>
-            </aside>
+            <section class="home-week training-panel" aria-labelledby="sample-week-title">
+                <h2 id="sample-week-title">Sample training week</h2>
+                <fieldset class="home-week-options" hidden>
+                    <legend>Sessions per week</legend>
+                    <div class="home-week-choices">
+                        <label>
+                            <input class="visually-hidden" type="radio" name="sample-week" value="2" data-days="0 3">
+                            <span>2 days</span>
+                        </label>
+                        <label>
+                            <input class="visually-hidden" type="radio" name="sample-week" value="3" data-days="0 2 4" checked>
+                            <span>3 days</span>
+                        </label>
+                        <label>
+                            <input class="visually-hidden" type="radio" name="sample-week" value="4" data-days="0 1 3 4">
+                            <span>4 days</span>
+                        </label>
+                    </div>
+                </fieldset>
+                <div class="home-week-days" aria-hidden="true"
+                     th:with="weekdays=${#strings.arraySplit('Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday', ',')}">
+                    <div class="home-day" th:each="day, slot : ${weekdays}" th:attr="data-weekday=${day}"
+                         th:classappend="${slot.index == 0 or slot.index == 2 or slot.index == 4} ? 'is-training'">
+                        <span th:text="${#strings.substring(day, 0, 3)}">Mon</span>
+                        <div class="home-day-slot">
+                            <svg viewBox="0 0 32 32" fill="none">
+                                <path d="M5 7v18M11 11v10M11 16h10M21 11v10M27 7v18" stroke="currentColor" stroke-width="2.5"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <p class="home-week-summary" role="status">
+                    <strong>Training days</strong>
+                    <span>Monday, Wednesday, and Friday</span>
+                </p>
+            </section>
         </section>
-        <section id="approach" class="approach" aria-labelledby="approach-title">
-            <div class="section-intro">
-                <h2 id="approach-title">Training with a reason<br>behind every recommendation.</h2>
+        <section id="approach" class="home-approach" aria-labelledby="approach-title">
+            <div class="home-approach-intro">
+                <h2 id="approach-title">Training with a reason behind every recommendation.</h2>
                 <p>The planner uses clear rules and your recorded performance to guide decisions.</p>
             </div>
-            <ol class="approach-steps">
-                <li>
-                    <h3>Start with your constraints</h3>
+            <div class="home-steps">
+                <details name="planning-approach" open>
+                    <summary>Start with your constraints</summary>
                     <p>Your available days, session length, experience, and equipment define what fits.</p>
-                </li>
-                <li>
-                    <h3>Understand your plan</h3>
+                </details>
+                <details name="planning-approach">
+                    <summary>Understand your plan</summary>
                     <p>See why exercises were selected, how training is distributed, and which targets could not be met.</p>
-                </li>
-                <li>
-                    <h3>Progress from performance</h3>
-                    <p>Record what you actually complete. Load suggestions use that evidence.</p>
-                </li>
-            </ol>
+                </details>
+                <details name="planning-approach">
+                    <summary>Progress from performance</summary>
+                    <p>Log actual sets and review explained load suggestions based on what you completed.</p>
+                </details>
+            </div>
         </section>
     </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
+<script th:src="@{/js/home.js}" defer></script>
 </body>
 </html>

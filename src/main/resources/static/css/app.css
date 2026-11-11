@@ -1185,30 +1185,138 @@ details[open] > summary .chevron-icon {
 }
 
 
-.dashboard-intro { margin-bottom: 2rem; }
-.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 1rem; }
-.dashboard-grid h2 { font-size: 2rem; }
-.dashboard-next { padding: clamp(1.25rem, 3vw, 2rem); }
-.dashboard-next h2 { margin-bottom: .75rem; }
-.dashboard-next p:not(.dashboard-session-name) { color: var(--muted); }
-.dashboard-session-name { margin: 0; font-size: 1.2rem; font-weight: 600; }
-.dashboard-meta { margin-bottom: .8rem; font-size: .9rem; }
-.dashboard-start-actions { margin-block: 1.1rem 1.35rem; }
-.dashboard-prescription { padding: 0; margin: 0 0 1.25rem; list-style: none; }
-.dashboard-prescription li, .dashboard-totals div { display: flex; justify-content: space-between; gap: .75rem; border-bottom: 1px solid var(--line); padding-block: .55rem; }
+.dashboard-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: .5rem 1.5rem;
+    margin-bottom: clamp(1.4rem, 3vw, 2.5rem);
+}
+.dashboard-heading h1 { margin: 0; font-size: clamp(2.85rem, 5.2vw, 4.75rem); }
+.dashboard-heading time { color: var(--muted); font-size: .95rem; }
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(1.75rem, 4vw, 3.75rem);
+}
+.dashboard h2 { margin-bottom: .4rem; font-size: clamp(1.9rem, 2.6vw, 2.6rem); }
+.dashboard-next {
+    padding: clamp(1.35rem, 4vw, 3rem);
+    border-color: color-mix(in srgb, var(--line), var(--accent) 20%);
+    background: color-mix(in srgb, var(--surface), var(--accent) 6%);
+}
+.dashboard-next h2 { font-size: clamp(2.5rem, 4.5vw, 4rem); }
+.dashboard-next > p { max-width: 48ch; color: var(--muted); }
+.dashboard-session-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem .8rem; margin-bottom: 1.5rem; }
+.dashboard-session-meta strong { color: var(--text); font-weight: 600; }
+.dashboard-start-help { margin: .65rem 0 0; }
+.dashboard-session { margin-top: 1.5rem; border-top: 1px solid var(--line); }
+.dashboard-session > summary {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    min-height: 48px;
+    padding-block: .6rem;
+    list-style: none;
+    font-weight: 600;
+}
+.dashboard-session > summary::-webkit-details-marker { display: none; }
+.dashboard-session > summary:hover { color: var(--accent); }
+.dashboard-session > summary span { color: var(--muted); font-weight: 400; }
+.dashboard-session > summary::after {
+    content: "";
+    width: .55rem;
+    height: .55rem;
+    margin-inline: auto .3rem;
+    border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor;
+    transform: translateY(-.15rem) rotate(45deg);
+    transition: transform 180ms ease-out;
+}
+.dashboard-session[open] > summary::after { transform: translateY(.15rem) rotate(225deg); }
+.dashboard-session > .selection-reason { margin-top: .75rem; }
+.dashboard-session .selection-reason p { margin-bottom: 0; }
+.dashboard-prescription { padding: 0; margin: .35rem 0 0; list-style: none; }
+.dashboard-prescription li {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    padding-block: .5rem;
+    border-bottom: 1px solid var(--line);
+}
 .dashboard-prescription li span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.dashboard-reasons { margin-top: .8rem; }
-.dashboard-plan { margin-top: 1rem; }
-.dashboard-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem; margin-block: .75rem; }
-.dashboard-totals div { flex-direction: column-reverse; justify-content: start; gap: .1rem; }
-.dashboard-totals dt, .dashboard-totals dd { font-size: .94rem; margin: 0; }
-.dashboard-totals dd { color: var(--accent); font: 600 2.35rem/1 var(--heading-font); font-variant-numeric: tabular-nums; }
-.dashboard-history { margin-top: 1rem; }
-.dashboard-history > :last-child { margin-bottom: 0; }
-.dashboard-history .workout-history { margin-top: 0; }
-.dashboard-history .workout-history li { padding-block: .6rem; }
-.dashboard-exercise-links { padding-left: 1.2rem; }
-.dashboard-exercise-links li + li { margin-top: .45rem; }
+
+.dashboard-plan { margin-top: clamp(1.75rem, 4vw, 2.75rem); }
+.dashboard-section-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .45rem 1rem; }
+.dashboard-section-heading p, .dashboard-plan-note { margin: 0; color: var(--muted); }
+.dashboard-plan-note { margin-top: .6rem; font-size: .9rem; }
+.dashboard-schedule {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: clamp(.2rem, .9vw, .6rem);
+    padding: 0;
+    margin: 1rem 0 .8rem;
+    list-style: none;
+}
+.dashboard-day {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: .15rem;
+    min-height: clamp(3.5rem, 7vw, 5.25rem);
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-input);
+    background: var(--surface);
+    font-size: .82rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+}
+.dashboard-day svg { width: 1.35rem; height: 1.35rem; }
+a.dashboard-day:hover { border-color: var(--accent); color: var(--accent); }
+.dashboard-day-next { border-color: var(--accent); background: var(--accent); color: var(--background); }
+a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--background); }
+.dashboard-day-next-label { font-size: .75rem; }
+.dashboard-day-open { border-color: var(--line); background: var(--background); color: var(--muted); }
+.dashboard-day-open::after { content: ""; width: .6rem; margin-block: .65rem; border-top: 1px solid var(--control-line); }
+.dashboard-plan-links { display: flex; flex-wrap: wrap; gap: .1rem 1.25rem; }
+.dashboard-plan-links a, .dashboard-text-link { display: inline-flex; align-items: center; min-height: 44px; font-size: .88rem; }
+.dashboard-plan-links a:hover, .dashboard-text-link:hover { color: var(--accent); }
+
+.dashboard-activity { padding-inline-start: clamp(1.25rem, 2.7vw, 2.25rem); border-inline-start: 1px solid var(--line); }
+.dashboard-activity section + section { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
+.dashboard-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1.1rem 0 .7rem; }
+.dashboard-totals div { display: flex; flex-direction: column-reverse; justify-content: start; gap: .25rem; }
+.dashboard-totals dd { margin: 0; font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 600; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.dashboard-totals dt { font-size: .85rem; }
+.dashboard-empty { margin: .25rem 0 0; color: var(--muted); font-size: .94rem; }
+.dashboard-log { margin: .35rem 0 0; padding: 0; list-style: none; }
+.dashboard-log li + li { border-top: 1px solid var(--line); }
+.dashboard-log a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    min-height: 44px;
+    padding: .5rem .25rem;
+    font-size: .9rem;
+    text-decoration: none;
+}
+.dashboard-log a:hover { color: var(--accent); text-decoration: underline; }
+.dashboard-log small { display: block; color: var(--muted); }
+.dashboard-log-status { color: var(--muted); font-size: .8rem; }
+
+@media (max-width: 800px) {
+    .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
+    .dashboard-activity { padding: 1.25rem 0 0; border-inline-start: 0; border-top: 1px solid var(--line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-session > summary::after { transition: none; }
+}
 
 .progress-summary { margin-block: 2rem; }
 .progress-summary h2, #sets-title { font-size: 2rem; }
@@ -1218,10 +1326,6 @@ details[open] > summary .chevron-icon {
 .progress-canvas { position: relative; height: 12rem; overflow: hidden; }
 .progress-summary table { font-variant-numeric: tabular-nums; }
 .progress-summary caption { text-align: left; padding: .6rem .9rem; font-weight: 600; }
-
-@media (max-width: 760px) {
-    .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
-}
 
 .plan-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: 1.5rem; }
 .option-heading { display: grid; grid-template-rows: minmax(4.25rem, auto) auto; gap: .5rem; }

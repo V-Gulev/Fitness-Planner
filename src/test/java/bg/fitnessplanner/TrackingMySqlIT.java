@@ -4,6 +4,7 @@ import bg.fitnessplanner.account.application.*;
 import bg.fitnessplanner.account.persistence.UserAccountRepository;
 import bg.fitnessplanner.catalog.domain.*;
 import bg.fitnessplanner.dashboard.DashboardController.ScheduledWorkout;
+import bg.fitnessplanner.dashboard.DashboardController.WeekSlot;
 import bg.fitnessplanner.planning.application.*;
 import bg.fitnessplanner.planning.persistence.WorkoutPlanRepository;
 import bg.fitnessplanner.profile.application.*;
@@ -30,6 +31,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -255,9 +257,10 @@ class TrackingMySqlIT {
 
         var before = mvc.perform(get("/dashboard").with(user(principal(owner))))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("Start workout")))
-                .andReturn().getModelAndView();
-        var next = (ScheduledWorkout) before.getModel().get("next");
+                .andReturn();
+        var next = (ScheduledWorkout) before.getModelAndView().getModel().get("next");
         assertThat(next.date()).isEqualTo(today);
+        assertThat(before.getResponse().getContentAsString()).contains("href=\"/plans#plan-day-" + next.day().id() + "\"");
         Long day = next.day().id();
 
         Long previous = workouts.start(owner, startForm(workouts.preview(owner, day, monday.minusDays(1))));
@@ -283,6 +286,7 @@ class TrackingMySqlIT {
         var response = mvc.perform(get("/dashboard").with(user(principal(owner))).param("userId", other.toString()))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("Resume workout")))
                 .andExpect(content().string(containsString("View prescribed weekly volume")))
+                .andExpect(content().string(containsString("Planned workouts by weekday")))
                 .andReturn().getModelAndView();
         var activity = (WorkoutViews.Activity) response.getModel().get("activity");
         assertThat(activity.completedWorkouts()).isEqualTo(1);
@@ -292,6 +296,10 @@ class TrackingMySqlIT {
                 .containsExactly(completedDetail.performances().getFirst().prescription().exerciseId());
         assertThat(activity.recent()).extracting(WorkoutViews.Summary::id).doesNotContain(unrelated);
         assertThat(((ScheduledWorkout) response.getModel().get("next")).date()).isEqualTo(today.plusDays(2));
+        assertThat(response.getModel().get("planWeek")).asInstanceOf(list(WeekSlot.class))
+                .hasSize(7)
+                .filteredOn(WeekSlot::next)
+                .singleElement().satisfies(slot -> assertThat(slot.day().weekdayNumber()).isEqualTo(today.plusDays(2).getDayOfWeek().getValue()));
 
         var first = completedDetail.performances().getFirst().prescription();
         mvc.perform(get("/workouts/exercises/" + first.exerciseId()).with(user(principal(owner))))

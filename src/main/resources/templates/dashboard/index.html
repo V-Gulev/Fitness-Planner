@@ -3,77 +3,107 @@
 <head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
 <body><div class="page-shell">
 <header th:replace="~{fragments/layout :: header}"></header>
-<main id="main" class="workspace" tabindex="-1">
-    <div class="page-intro dashboard-intro">
+<main id="main" class="workspace dashboard" tabindex="-1">
+    <div class="dashboard-heading">
         <h1>Training dashboard</h1>
-        <p>Your next workout, current plan, and the work you’ve logged this week.</p>
+        <time th:datetime="${today}" th:text="${#temporals.format(today, 'EEEE, d MMMM')}"></time>
     </div>
 
     <div class="dashboard-grid">
-        <div>
+        <div class="dashboard-training">
             <section class="dashboard-next training-panel" aria-labelledby="next-title">
-                <h2 id="next-title" th:text="${activity.draft != null} ? 'Pick up your workout' : (${next != null} ? 'Next scheduled workout' : 'Get ready to train')"></h2>
-
-                <div th:if="${activity.draft != null}">
-                    <p>Continue the workout you started for <time th:datetime="${activity.draft.date}" th:text="${activity.draft.date}"></time>.</p>
-                    <a class="button" th:href="@{/workouts/{id}(id=${activity.draft.id})}">Resume workout</a>
-                </div>
-
-                <div th:if="${activity.draft == null and next != null}">
-                    <p class="dashboard-session-name" th:text="${next.day.type}"></p>
-                    <p class="dashboard-meta">
-                        <time th:datetime="${next.date}" th:text="${#temporals.format(next.date, 'EEE, d MMM')}"></time>
-                        <span th:if="${next.date == today}"> · Today</span>
-                        <span th:text="' · About ' + ${next.day.estimatedMinutes} + ' min'"></span>
+                <th:block th:if="${activity.draft != null}">
+                    <h2 id="next-title">Pick up your workout</h2>
+                    <p>Continue the workout you started for
+                        <time th:datetime="${activity.draft.date}" th:text="${#temporals.format(activity.draft.date, 'd MMMM yyyy')}"></time>.
                     </p>
-                    <div class="dashboard-start-actions">
-                        <a class="button" th:if="${next.date == today}" th:href="@{/workouts/new/{id}(id=${next.day.id})}">Start workout</a>
-                        <a class="button" th:if="${next.date != today}" th:href="@{/plans} + '#plan-day-' + ${next.day.id}">View scheduled workout</a>
-                        <p class="field-help dashboard-reasons" th:if="${next.date == today}">Review suggested loads before you start logging.</p>
-                    </div>
-                    <p class="field-help">Prescribed sets × reps</p>
-                    <ul class="dashboard-prescription">
-                        <li th:each="exercise : ${next.day.exercises}">
-                            <span th:text="${exercise.name}"></span>
-                            <span th:text="${exercise.sets} + ' × ' + ${exercise.reps}"></span>
-                        </li>
-                    </ul>
-                    <details class="selection-reason" th:with="exercise=${next.day.exercises[0]}">
-                        <summary th:text="'Why ' + ${exercise.name} + '?'"></summary>
-                        <p th:text="${exercise.explanation}"></p>
-                    </details>
-                </div>
+                    <a class="button" th:href="@{/workouts/{id}(id=${activity.draft.id})}">Resume workout</a>
+                </th:block>
 
-                <div th:if="${activity.draft == null and next == null}" th:switch="${page.profile == null ? 'profile' : (page.plan == null ? 'plan' : 'stale')}">
-                    <div th:case="'profile'">
-                        <p>Set your training days, available equipment, and goals so the planner can build a week that fits.</p>
+                <th:block th:if="${activity.draft == null and next != null}">
+                    <h2 id="next-title" th:text="${next.day.type}"></h2>
+                    <p class="dashboard-session-meta">
+                        <strong>Next workout</strong>
+                        <time th:datetime="${next.date}" th:text="${next.date == today ? 'Today' : #temporals.format(next.date, 'EEE, d MMM')}"></time>
+                        <span th:text="|About ${next.day.estimatedMinutes} min|"></span>
+                    </p>
+                    <a class="button" th:if="${next.date == today}" th:href="@{/workouts/new/{id}(id=${next.day.id})}">Start workout</a>
+                    <a class="button" th:if="${next.date != today}" th:href="@{/plans} + '#plan-day-' + ${next.day.id}">View scheduled workout</a>
+                    <p class="field-help dashboard-start-help" th:if="${next.date == today}">Review suggested loads before you start logging.</p>
+
+                    <details class="dashboard-session" th:unless="${#lists.isEmpty(next.day.exercises)}">
+                        <summary>Session exercises <span th:text="${#lists.size(next.day.exercises)}"></span></summary>
+                        <p class="field-help">Prescribed sets × reps</p>
+                        <ul class="dashboard-prescription">
+                            <li th:each="exercise : ${next.day.exercises}">
+                                <span th:text="${exercise.name}"></span>
+                                <span th:text="|${exercise.sets} × ${exercise.reps}|"></span>
+                            </li>
+                        </ul>
+                        <details class="selection-reason" th:with="exercise=${next.day.exercises[0]}">
+                            <summary th:text="|Why ${exercise.name}?|"></summary>
+                            <p th:text="${exercise.explanation}"></p>
+                        </details>
+                    </details>
+                </th:block>
+
+                <th:block th:if="${activity.draft == null and next == null}" th:switch="${page.profile == null ? 'profile' : (page.plan == null ? 'plan' : 'stale')}">
+                    <th:block th:case="'profile'">
+                        <h2 id="next-title">Set up your training profile</h2>
+                        <p>Choose your training days, equipment, and goals so the planner can build a week that fits.</p>
                         <a class="button" th:href="@{/profile}">Set up your profile</a>
-                    </div>
-                    <div th:case="'plan'">
-                        <p>Your profile is ready. Generate a plan to get your first schedule.</p>
+                    </th:block>
+                    <th:block th:case="'plan'">
+                        <h2 id="next-title">Build your first week</h2>
+                        <p>Your profile is ready. Generate a plan to see your workout schedule.</p>
                         <a class="button" th:href="@{/plans}">Generate a plan</a>
-                    </div>
-                    <div th:case="'stale'">
-                        <p>Your training preferences changed. Generate a new plan to update your schedule.</p>
+                    </th:block>
+                    <th:block th:case="'stale'">
+                        <h2 id="next-title">Update your training schedule</h2>
+                        <p th:text="${page.plan.profileChanged} ? 'Your training preferences changed. Generate a plan that fits your updated profile.' : 'Your current plan has no scheduled workouts. Generate a new plan to update your schedule.'"></p>
                         <a class="button" th:href="@{/plans}">Update your plan</a>
-                    </div>
-                </div>
+                    </th:block>
+                </th:block>
             </section>
 
-            <section class="dashboard-plan training-panel" aria-labelledby="current-title" th:if="${page.plan != null}">
-                <h2 id="current-title">Current plan</h2>
-                <p th:text="${page.plan.structure}"></p>
-                <p class="field-help" th:if="${page.plan.profileChanged}">This plan was generated before your latest profile changes.</p>
-                <p class="field-help" th:if="${page.plan.status.name() == 'DEGRADED'}">Some weekly volume targets could not be met. See the plan for details.</p>
-                <p class="dashboard-reasons"><a th:href="@{/plans#saved-plan-title}">See why exercises were selected</a></p>
-                <a th:href="@{/plans#volume-title}">View prescribed weekly volume</a>
+            <section class="dashboard-plan" aria-labelledby="current-title" th:if="${page.plan != null}">
+                <div class="dashboard-section-heading">
+                    <div>
+                        <h2 id="current-title">Current plan</h2>
+                        <p th:text="${page.plan.structure}"></p>
+                    </div>
+                    <a class="button button-secondary" th:href="@{/plans}">View plan</a>
+                </div>
+                <p class="dashboard-plan-note" th:if="${page.plan.profileChanged}">This plan was generated before your latest profile changes.</p>
+                <p class="dashboard-plan-note" th:if="${page.plan.status.name() == 'DEGRADED'}">Some weekly volume targets could not be met.</p>
+                <ul class="dashboard-schedule" aria-label="Planned workouts by weekday" role="list">
+                    <li th:each="slot : ${planWeek}">
+                        <a class="dashboard-day" th:if="${slot.day != null}" th:classappend="${slot.next} ? 'dashboard-day-next'"
+                           th:href="@{/plans} + '#plan-day-' + ${slot.day.id}"
+                           th:aria-label="|${slot.weekday}, ${slot.day.type}${slot.next ? ', next scheduled workout' : ''}|">
+                            <span th:text="${slot.shortLabel}"></span>
+                            <span th:if="${slot.next}" class="dashboard-day-next-label">Next</span>
+                            <svg th:unless="${slot.next}" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                                <path d="M5 7v18M11 11v10M11 16h10M21 11v10M27 7v18" stroke="currentColor" stroke-width="2.5"/>
+                            </svg>
+                        </a>
+                        <span class="dashboard-day dashboard-day-open" th:if="${slot.day == null}">
+                            <span th:text="${slot.shortLabel}" aria-hidden="true"></span>
+                            <span class="visually-hidden" th:text="|${slot.weekday}, no planned workout|"></span>
+                        </span>
+                    </li>
+                </ul>
+                <div class="dashboard-plan-links">
+                    <a th:href="@{/plans#saved-plan-title}">See why exercises were selected</a>
+                    <a th:href="@{/plans#volume-title}">View prescribed weekly volume</a>
+                </div>
             </section>
         </div>
 
         <div class="dashboard-activity">
-            <section class="training-panel" aria-labelledby="week-title">
+            <section aria-labelledby="week-title">
                 <h2 id="week-title">Logged this week</h2>
-                <p class="field-help" th:text="${#temporals.format(weekStart, 'd MMM')} + ' – ' + ${#temporals.format(today, 'd MMM yyyy')}"></p>
+                <p class="field-help" th:text="|${#temporals.format(weekStart, 'd MMM')} – ${#temporals.format(today, 'd MMM yyyy')}|"></p>
                 <dl class="dashboard-totals">
                     <div><dt>Completed workouts</dt><dd th:text="${activity.completedWorkouts}"></dd></div>
                     <div><dt>Actual work sets</dt><dd th:text="${activity.loggedSets}"></dd></div>
@@ -81,22 +111,29 @@
                 <p class="field-help">Counts use the workout date and sets in completed logs.</p>
             </section>
 
-            <section class="dashboard-history training-panel" aria-labelledby="recent-title">
-                <h2 id="recent-title">Recent workouts</h2>
-                <p th:if="${#lists.isEmpty(activity.recent)}">Your drafts and completed workouts will appear here when you start logging.</p>
-                <ul class="workout-history" th:unless="${#lists.isEmpty(activity.recent)}">
+            <section aria-labelledby="recent-title">
+                <div class="dashboard-section-heading">
+                    <h2 id="recent-title">Recent workouts</h2>
+                    <a class="dashboard-text-link" th:unless="${#lists.isEmpty(activity.recent)}" th:href="@{/workouts}">View history</a>
+                </div>
+                <p class="dashboard-empty" th:if="${#lists.isEmpty(activity.recent)}">Your drafts and completed workouts will appear here when you start logging.</p>
+                <ul class="dashboard-log" th:unless="${#lists.isEmpty(activity.recent)}" role="list">
                     <li th:each="workout : ${activity.recent}">
-                        <a th:href="@{/workouts/{id}(id=${workout.id})}" th:text="${#temporals.format(workout.date, 'd MMM yyyy')} + ' · Workout ' + ${workout.id}"></a>
-                        <span class="field-help" th:text="${workout.status.name() == 'IN_PROGRESS' ? 'Draft' : (workout.status.name() == 'COMPLETED' ? 'Completed' : 'Cancelled')}"></span>
+                        <a th:href="@{/workouts/{id}(id=${workout.id})}">
+                            <span>
+                                <time th:datetime="${workout.date}" th:text="${#temporals.format(workout.date, 'd MMM yyyy')}"></time>
+                                <small th:text="|Workout ${workout.id}|"></small>
+                            </span>
+                            <span class="dashboard-log-status" th:text="${workout.status.name() == 'IN_PROGRESS' ? 'Draft' : (workout.status.name() == 'COMPLETED' ? 'Completed' : 'Cancelled')}"></span>
+                        </a>
                     </li>
                 </ul>
-                <a th:unless="${#lists.isEmpty(activity.recent)}" th:href="@{/workouts}">View workout history</a>
             </section>
 
-            <section class="dashboard-history training-panel" aria-labelledby="exercise-title" th:unless="${#lists.isEmpty(activity.exercises)}">
+            <section aria-labelledby="exercise-title" th:unless="${#lists.isEmpty(activity.exercises)}">
                 <h2 id="exercise-title">Exercise history</h2>
                 <p class="field-help">Exercises you logged in your latest completed workout.</p>
-                <ul class="dashboard-exercise-links">
+                <ul class="dashboard-log" role="list">
                     <li th:each="exercise : ${activity.exercises}">
                         <a th:href="@{/workouts/exercises/{id}(id=${exercise.id})}" th:text="${exercise.name}"></a>
                     </li>

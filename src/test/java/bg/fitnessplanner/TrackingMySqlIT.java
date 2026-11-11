@@ -27,6 +27,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import jakarta.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -319,6 +321,53 @@ class TrackingMySqlIT {
         profiles.save(owner, profile);
         mvc.perform(get("/dashboard").with(user(principal(owner))))
                 .andExpect(status().isOk()).andExpect(content().string(containsString("Generate a plan")));
+    }
+
+    @Test
+    void workoutCalendarRendersOwnedMonthsWorkoutsAndDetails() throws Exception {
+        Long owner = owner();
+        Long other = owner();
+        LocalDate today = workouts.today();
+        LocalDate previousMonthDay = today.minusMonths(1).withDayOfMonth(1);
+        Long dayId = planQueries.page(owner, null).plan().days().getFirst().id();
+        String expectedType = planQueries.page(owner, null).plan().days().getFirst().type();
+
+        Long currentId = workouts.start(owner, startForm(workouts.preview(owner, dayId, today)));
+        var currentDetail = workouts.detail(owner, currentId);
+        workouts.save(owner, currentId, logged(currentDetail), true);
+
+        Long earlierId = workouts.start(owner, startForm(workouts.preview(owner, dayId, previousMonthDay)));
+        workouts.save(owner, earlierId, logged(workouts.detail(owner, earlierId)), true);
+
+        Long unrelated = start(other);
+        workouts.save(other, unrelated, logged(workouts.detail(other, unrelated)), true);
+
+        String firstExercise = currentDetail.performances().getFirst().prescription().name();
+        mvc.perform(get("/workouts").with(user(principal(owner))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Workout calendar")))
+                .andExpect(content().string(containsString(expectedType)))
+                .andExpect(content().string(containsString(firstExercise)))
+                .andExpect(content().string(containsString("/workouts/" + currentId)))
+                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
+                        .doesNotContain("/workouts/" + unrelated));
+
+        mvc.perform(get("/workouts")
+                        .param("month", YearMonth.from(previousMonthDay).toString())
+                        .param("date", previousMonthDay.toString())
+                        .with(user(principal(owner))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-calendar-panel=\"" + previousMonthDay + "\"")))
+                .andExpect(content().string(containsString("/workouts/" + earlierId)));
+
+        mvc.perform(get("/workouts").param("month", "invalid").param("date", "nope").with(user(principal(owner))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Workout calendar")));
+
+        mvc.perform(get("/dashboard").with(user(principal(owner))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-mini-calendar")))
+                .andExpect(content().string(containsString(expectedType)));
     }
 
     private Long owner() {

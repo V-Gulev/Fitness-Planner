@@ -4,6 +4,8 @@ import bg.fitnessplanner.account.application.AccountPrincipal;
 import bg.fitnessplanner.planning.application.PlanQueryService;
 import bg.fitnessplanner.planning.application.PlanViews;
 import bg.fitnessplanner.tracking.application.WorkoutService;
+import bg.fitnessplanner.tracking.application.WorkoutViews;
+import bg.fitnessplanner.tracking.web.WorkoutCalendar;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
@@ -37,9 +40,17 @@ public class DashboardController {
         var page = plans.page(owner, null);
         var activity = workouts.activity(owner, weekStart, today);
         var next = nextWorkout(page.plan(), today, activity.finishedToday());
+        YearMonth currentMonth = YearMonth.from(today);
+        var bounds = WorkoutCalendar.gridBounds(currentMonth);
+        var calendar = WorkoutCalendar.of(currentMonth, today, today,
+                workouts.calendarSessions(owner, bounds.from(), bounds.through()));
+        var recentDetails = workouts.sessionDetailsByIds(owner,
+                activity.recent().stream().map(WorkoutViews.Summary::id).toList());
 
         model.addAttribute("page", page);
         model.addAttribute("activity", activity);
+        model.addAttribute("recentDetails", recentDetails);
+        model.addAttribute("calendar", calendar);
         model.addAttribute("today", today);
         model.addAttribute("weekStart", weekStart);
         model.addAttribute("next", next);

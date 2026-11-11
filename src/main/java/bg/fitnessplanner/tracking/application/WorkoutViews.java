@@ -20,6 +20,14 @@ public final class WorkoutViews {
         public boolean editable() { return status == SessionStatus.IN_PROGRESS; }
     }
     public record Summary(Long id, Long planId, LocalDate date, SessionStatus status) { }
+    public record CalendarExercise(Long exerciseId, String name, PerformanceStatus status, int completedSets, String summary) { }
+    public record CalendarSession(Long id, Long planId, Long dayId, LocalDate date, SessionStatus status, String workoutTitle,
+                                  int completedExercises, int totalExercises, int totalSets, int totalReps,
+                                  List<CalendarExercise> exercises) {
+        public String shortLabel() {
+            return workoutTitle != null && !workoutTitle.isBlank() ? workoutTitle : "Workout " + id;
+        }
+    }
     public record ExerciseLink(Long id, String name) { }
     public record Activity(Summary draft, List<Summary> recent, List<ExerciseLink> exercises,
                            long completedWorkouts, long loggedSets, java.util.Set<Long> finishedToday) { }

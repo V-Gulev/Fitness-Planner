@@ -8,6 +8,11 @@ public interface WorkoutSessionRepository extends JpaRepository<WorkoutSession, 
     Optional<WorkoutSession> findByUserIdAndSubmissionToken(Long userId, String token);
     Optional<WorkoutSession> findByUserIdAndWorkoutDayIdAndStatus(Long userId, Long dayId, SessionStatus status);
     List<WorkoutSession> findTop20ByUserIdOrderBySessionDateDescIdDesc(Long userId);
+    @EntityGraph(attributePaths = {"performances"})
+    List<WorkoutSession> findByUserIdAndSessionDateBetweenOrderBySessionDateDescIdDesc(
+            Long userId, java.time.LocalDate from, java.time.LocalDate through);
+    @EntityGraph(attributePaths = {"performances"})
+    List<WorkoutSession> findByUserIdAndIdInOrderBySessionDateDescIdDesc(Long userId, Collection<Long> ids);
     Optional<WorkoutSession> findFirstByUserIdAndStatusOrderByUpdatedAtDescIdDesc(Long userId, SessionStatus status);
     Optional<WorkoutSession> findFirstByUserIdAndStatusOrderBySessionDateDescIdDesc(Long userId, SessionStatus status);
     long countByUserIdAndStatusAndSessionDateBetween(Long userId, SessionStatus status,

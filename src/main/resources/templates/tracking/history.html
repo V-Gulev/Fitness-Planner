@@ -1,72 +1,298 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Workouts')}"></head>
-<body><div class="page-shell"><header th:replace="~{fragments/layout :: header}"></header>
-<main id="main" class="workspace" tabindex="-1">
-    <div class="page-intro">
-        <h1>Workouts</h1>
-        <p>Start a session directly from your plan, resume a draft, or review your completed training history.</p>
-    </div>
-    <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
-
-    <!-- Available workouts from active plan -->
-    <section class="available-workouts" aria-labelledby="available-workouts-title">
-        <div class="available-workouts-heading">
-            <h2 id="available-workouts-title">Start a workout</h2>
-            <p th:if="${plan != null and plan.active and !plan.profileChanged}" class="field-help">Click to begin logging immediately, or use preview for load suggestions.</p>
+<body>
+<div class="page-shell">
+    <header th:replace="~{fragments/layout :: header}"></header>
+    <main id="main" class="workspace workouts-workspace" tabindex="-1">
+        <div class="page-intro">
+            <h1>Workouts</h1>
+            <p>Start a session from your plan, or use the interactive calendar to inspect every day you trained and what you logged.</p>
         </div>
+        <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
 
-        <div th:if="${plan == null}" class="empty-state">
-            <p>You don't have an active plan yet.</p>
-            <a class="button" th:href="@{/plans}">Create your training plan</a>
-        </div>
+        <!-- Available workouts from active plan -->
+        <section class="available-workouts" aria-labelledby="available-workouts-title">
+            <div class="available-workouts-heading">
+                <h2 id="available-workouts-title">Start a workout</h2>
+                <p th:if="${plan != null and plan.active and !plan.profileChanged}" class="field-help">Begin logging immediately, or use preview to review suggested load targets.</p>
+            </div>
 
-        <div th:if="${plan != null and plan.profileChanged}" class="feedback feedback-error">
-            <p>Your profile differs from your active plan. Generate a new plan before starting a workout.</p>
-            <a th:href="@{/plans}">Go to plan options</a>
-        </div>
+            <div th:if="${plan == null}" class="empty-state">
+                <p>You don't have an active plan yet.</p>
+                <a class="button" th:href="@{/plans}">Create your training plan</a>
+            </div>
 
-        <div th:if="${plan != null and plan.active and !plan.profileChanged}" class="workout-cards-grid">
-            <article class="workout-card" th:each="day : ${plan.days}">
-                <div class="workout-card-header">
-                    <div>
-                        <h3 th:text="${day.weekday}"></h3>
-                        <p class="workout-card-type" th:text="${day.type}"></p>
+            <div th:if="${plan != null and plan.profileChanged}" class="feedback feedback-error">
+                <p>Your profile differs from your active plan. Generate a new plan before starting a workout.</p>
+                <a th:href="@{/plans}">Go to plan options</a>
+            </div>
+
+            <div th:if="${plan != null and plan.active and !plan.profileChanged}" class="workout-cards-grid">
+                <article class="workout-card" th:each="day : ${plan.days}">
+                    <div class="workout-card-header">
+                        <div>
+                            <h3 th:text="${day.weekday}"></h3>
+                            <p class="workout-card-type" th:text="${day.type}"></p>
+                        </div>
+                        <span class="workout-card-duration" th:text="'~' + ${day.estimatedMinutes} + ' min'"></span>
                     </div>
-                    <span class="workout-card-duration" th:text="'~' + ${day.estimatedMinutes} + ' min'"></span>
-                </div>
-                <ul class="workout-card-exercises">
-                    <li th:each="exercise : ${day.exercises}">
-                        <span class="exercise-card-name" th:text="${exercise.name}"></span>
-                        <span class="field-help" th:text="${exercise.sets} + ' × ' + ${exercise.reps}"></span>
-                    </li>
-                </ul>
-                <div class="workout-card-footer">
-                    <form th:action="@{/workouts/start/{id}(id=${day.id})}" method="post">
-                        <button class="button" type="submit"
-                                th:text="${openDayIds != null and openDayIds.contains(day.id)} ? 'Resume workout' : 'Start workout'"></button>
-                    </form>
-                    <a class="text-button" th:href="@{/workouts/new/{id}(id=${day.id})}">Preview &amp; options</a>
-                </div>
-            </article>
-        </div>
-    </section>
+                    <ul class="workout-card-exercises">
+                        <li th:each="exercise : ${day.exercises}">
+                            <span class="exercise-card-name" th:text="${exercise.name}"></span>
+                            <span class="field-help" th:text="${exercise.sets} + ' × ' + ${exercise.reps}"></span>
+                        </li>
+                    </ul>
+                    <div class="workout-card-footer">
+                        <form th:action="@{/workouts/start/{id}(id=${day.id})}" method="post">
+                            <button class="button" type="submit"
+                                    th:text="${openDayIds != null and openDayIds.contains(day.id)} ? 'Resume workout' : 'Start workout'"></button>
+                        </form>
+                        <a class="text-button" th:href="@{/workouts/new/{id}(id=${day.id})}">Preview &amp; options</a>
+                    </div>
+                </article>
+            </div>
+        </section>
 
-    <!-- Workout history -->
-    <section class="empty-state" th:if="${#lists.isEmpty(history)}">
-        <h2>No workouts recorded yet.</h2>
-        <p>Start a session above from your current plan, then record your sets as you train.</p>
-    </section>
-    <section class="workout-entry training-panel" th:unless="${#lists.isEmpty(history)}">
-        <h2>Recent workouts</h2>
-        <ul class="workout-history">
-            <li th:each="item : ${history}">
-                <a th:href="@{/workouts/{id}(id=${item.id})}" th:text="${item.date} + ' · Workout ' + ${item.id}"></a>
-                <span class="field-help" th:text="${#strings.replace(item.status, '_', ' ')} + ' · Plan ' + ${item.planId}"></span>
-            </li>
-        </ul>
-        <p class="field-help">Showing up to 20 recent workouts. Cancelled drafts are excluded from progression evidence.</p>
-    </section>
-</main>
-<footer th:replace="~{fragments/layout :: footer}"></footer>
-</div></body></html>
+        <!-- Interactive Workout Calendar -->
+        <section id="workout-calendar" class="workout-calendar-section" aria-labelledby="workout-calendar-title">
+            <div class="calendar-section-heading">
+                <div>
+                    <h2 id="workout-calendar-title">Workout calendar</h2>
+                    <p class="field-help" th:if="${#lists.isEmpty(history)}">No workouts recorded yet. Select a workout above or choose any date up to today to start logging.</p>
+                    <p class="field-help" th:unless="${#lists.isEmpty(history)}">Click any day to see the workout type, completed exercises, sets, and recorded loads.</p>
+                </div>
+            </div>
+
+            <div class="calendar-layout training-panel"
+                 th:attr="data-calendar-month=${calendar.month},data-calendar-current-month=${calendar.currentMonth},data-calendar-selection=${calendar.selectedDate}">
+                <div class="calendar-toolbar">
+                    <div class="calendar-title-group">
+                        <h3 id="calendar-month-label" tabindex="-1" th:text="${calendar.label()}"></h3>
+                        <div class="calendar-month-stats">
+                            <span class="calendar-stat-pill" th:classappend="${calendar.trainingDays > 0} ? 'is-highlighted'"
+                                  th:text="${calendar.trainingDays} + (${calendar.trainingDays == 1} ? ' training day' : ' training days')"></span>
+                            <span class="calendar-stat-pill"
+                                  th:text="${calendar.completedSessions} + (${calendar.completedSessions == 1} ? ' completed workout' : ' completed workouts')"></span>
+                            <span class="calendar-stat-pill"
+                                  th:text="${calendar.loggedSets} + (${calendar.loggedSets == 1} ? ' set logged' : ' sets logged')"></span>
+                        </div>
+                    </div>
+
+                    <nav class="calendar-nav" aria-label="Calendar month navigation">
+                        <a class="calendar-nav-btn" th:if="${calendar.previousMonth != null}"
+                           th:href="@{/workouts(month=${calendar.previousMonth})} + '#workout-calendar'"
+                           data-calendar-month-link="prev" aria-label="Previous month">
+                            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M10 3.5 5.5 8 10 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Prev</span>
+                        </a>
+                        <span class="calendar-nav-btn is-disabled" th:if="${calendar.previousMonth == null}" aria-disabled="true">
+                            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M10 3.5 5.5 8 10 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>Prev</span>
+                        </span>
+
+                        <a class="calendar-nav-btn is-today-jump" th:unless="${calendar.currentMonthActive()}"
+                           th:href="@{/workouts(month=${calendar.currentMonth}, date=${today})} + '#workout-calendar'"
+                           data-calendar-month-link="today">Today</a>
+
+                        <a class="calendar-nav-btn" th:if="${calendar.nextMonth != null}"
+                           th:href="@{/workouts(month=${calendar.nextMonth})} + '#workout-calendar'"
+                           data-calendar-month-link="next" aria-label="Next month">
+                            <span>Next</span>
+                            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <span class="calendar-nav-btn is-disabled" th:if="${calendar.nextMonth == null}" aria-disabled="true">
+                            <span>Next</span>
+                            <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </nav>
+                </div>
+
+                <div class="calendar-body">
+                    <div class="calendar-grid-stage">
+                        <div class="calendar-weekdays" aria-hidden="true">
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                            <span>Sun</span>
+                        </div>
+
+                        <div class="calendar-grid" role="grid" aria-labelledby="calendar-month-label">
+                            <th:block th:each="day : ${calendar.days}">
+                                <a th:if="${day.selectable()}"
+                                   class="calendar-cell is-selectable"
+                                   th:classappend="${(day.trained() ? 'is-trained ' : '') + (day.hasDraft() ? 'is-draft ' : '') + (day.cancelled > 0 and !day.trained() and !day.hasDraft() ? 'is-cancelled ' : '') + (day.today ? 'is-today' : '')}"
+                                   th:href="@{/workouts(month=${calendar.month}, date=${day.date})} + '#workout-calendar'"
+                                   th:attr="data-calendar-day=${day.date},
+                                            data-calendar-label=${day.label()},
+                                            data-has-session=${day.hasSessions()},
+                                            data-is-today=${day.today},
+                                            aria-current=${day.date.equals(calendar.selectedDate) ? 'date' : null},
+                                            aria-label=${day.label() + (day.primaryTitle() != null ? ', ' + day.primaryTitle() : ', no workout logged')}">
+                                    <span class="calendar-cell-top">
+                                        <span class="calendar-day-num" th:text="${day.date.dayOfMonth}"></span>
+                                        <span class="calendar-status-dot" th:if="${day.hasSessions()}" aria-hidden="true"></span>
+                                        <span class="calendar-today-tag" th:if="${day.today and !day.hasSessions()}">Today</span>
+                                    </span>
+                                    <span class="calendar-cell-workouts" th:if="${day.hasSessions()}">
+                                        <span class="calendar-workout-tag" th:text="${day.primaryTitle()}"></span>
+                                        <span class="calendar-extra-count" th:if="${day.sessions.size() > 1}" th:text="'+' + ${day.sessions.size() - 1}"></span>
+                                    </span>
+                                </a>
+
+                                <div th:unless="${day.selectable()}"
+                                     class="calendar-cell is-passive"
+                                     th:classappend="${(!day.inMonth ? 'is-outside ' : '') + (day.future ? 'is-future ' : '') + (day.trained() ? 'is-trained-outside ' : '') + (day.hasDraft() ? 'is-draft-outside ' : '')}"
+                                     aria-disabled="true">
+                                    <span class="calendar-cell-top">
+                                        <span class="calendar-day-num" th:text="${day.date.dayOfMonth}"></span>
+                                        <span class="calendar-status-dot" th:if="${day.hasSessions()}" aria-hidden="true"></span>
+                                    </span>
+                                    <span class="calendar-cell-workouts" th:if="${day.hasSessions()}">
+                                        <span class="calendar-workout-tag" th:text="${day.primaryTitle()}"></span>
+                                    </span>
+                                </div>
+                            </th:block>
+                        </div>
+
+                        <div class="calendar-legend" aria-label="Calendar legend">
+                            <span class="legend-item"><span class="legend-swatch is-completed"></span>Completed workout</span>
+                            <span class="legend-item"><span class="legend-swatch is-draft"></span>Draft in progress</span>
+                            <span class="legend-item"><span class="legend-swatch is-today"></span>Today</span>
+                        </div>
+                    </div>
+
+                    <aside class="calendar-detail-panel" data-calendar-detail tabindex="-1" aria-label="Selected day workout details">
+                        <p class="visually-hidden" data-calendar-status aria-live="polite"></p>
+
+                        <div class="calendar-detail-controls" data-calendar-log-controls>
+                            <span class="calendar-detail-label">Session breakdown</span>
+                            <div class="calendar-step-group">
+                                <button type="button" class="calendar-step-btn" data-calendar-log-step="earlier" aria-label="Jump to earlier logged workout">
+                                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                        <path d="M10 3.5 5.5 8 10 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    <span>Earlier</span>
+                                </button>
+                                <button type="button" class="calendar-step-btn" data-calendar-log-step="later" aria-label="Jump to later logged workout">
+                                    <span>Later</span>
+                                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                        <path d="M6 3.5 10.5 8 6 12.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Session Day Panels -->
+                        <div class="calendar-day-panel"
+                             th:each="day : ${calendar.days}"
+                             th:if="${day.inMonth and day.hasSessions()}"
+                             th:attr="data-calendar-panel=${day.date}"
+                             th:hidden="${!day.date.equals(calendar.selectedDate)}">
+                            <div class="calendar-day-header-row">
+                                <h3 th:text="${day.label()}"></h3>
+                                <span class="calendar-today-pill" th:if="${day.today}">Today</span>
+                            </div>
+
+                            <div class="calendar-sessions-stack">
+                                <article class="calendar-session-card"
+                                         th:each="entry : ${day.sessions}"
+                                         th:classappend="${entry.status.name() == 'COMPLETED' ? 'is-completed' : (entry.status.name() == 'IN_PROGRESS' ? 'is-draft' : 'is-cancelled')}">
+                                    <div class="calendar-session-head">
+                                        <div>
+                                            <h4 th:text="${entry.shortLabel()}"></h4>
+                                            <p class="calendar-session-meta" th:text="'Workout #' + ${entry.id} + ' · Plan #' + ${entry.planId}"></p>
+                                        </div>
+                                        <span class="calendar-session-badge"
+                                              th:text="${entry.status.name() == 'COMPLETED' ? 'Completed' : (entry.status.name() == 'IN_PROGRESS' ? 'Draft' : 'Cancelled')}"></span>
+                                    </div>
+
+                                    <div class="calendar-session-metrics">
+                                        <span th:text="${entry.completedExercises} + '/' + ${entry.totalExercises} + ' exercises'"></span>
+                                        <span th:text="${entry.totalSets} + (${entry.totalSets == 1} ? ' set' : ' sets')"></span>
+                                        <span th:if="${entry.totalReps > 0}" th:text="${entry.totalReps} + ' reps'"></span>
+                                    </div>
+
+                                    <ul class="calendar-exercise-list" th:unless="${#lists.isEmpty(entry.exercises)}">
+                                        <li th:each="ex : ${entry.exercises}">
+                                            <a class="calendar-ex-name"
+                                               th:href="@{/workouts/exercises/{id}(id=${ex.exerciseId})}"
+                                               th:text="${ex.name}"></a>
+                                            <span class="calendar-ex-summary"
+                                                  th:classappend="${ex.status.name() == 'SKIPPED' ? 'is-skipped' : (ex.status.name() == 'COMPLETED' ? 'is-done' : '')}"
+                                                  th:text="${ex.summary}"></span>
+                                        </li>
+                                    </ul>
+
+                                    <div class="calendar-session-actions">
+                                        <a class="button"
+                                           th:classappend="${entry.status.name() != 'IN_PROGRESS'} ? 'button-secondary'"
+                                           th:href="@{/workouts/{id}(id=${entry.id})}"
+                                           th:text="${entry.status.name() == 'IN_PROGRESS'} ? 'Resume workout' : 'Open workout log'"></a>
+                                    </div>
+                                </article>
+                            </div>
+                        </div>
+
+                        <!-- Empty Day / Rest Day Fallback Panel -->
+                        <div class="calendar-day-panel calendar-empty-day-panel"
+                             data-calendar-empty-panel
+                             th:hidden="${calendar.selectedDay().hasSessions()}">
+                            <div class="calendar-day-header-row">
+                                <h3 data-empty-date-label th:text="${calendar.selectedDay().label()}"></h3>
+                                <span class="calendar-today-pill" data-empty-today-badge th:hidden="${!calendar.selectedDay().today}">Today</span>
+                            </div>
+                            <p class="calendar-empty-copy"
+                               th:text="${#lists.isEmpty(history)} ? 'No workouts recorded yet. Pick a workout from your plan above or choose a session below to log this day.' : 'No workouts logged on this date.'"></p>
+
+                            <div class="calendar-quick-log" th:if="${plan != null and plan.active and !plan.profileChanged}">
+                                <p class="calendar-quick-log-label">Quick log for this date</p>
+                                <div class="calendar-quick-log-links">
+                                    <a th:each="planDay : ${plan.days}"
+                                       class="calendar-quick-link"
+                                       data-quick-log-link
+                                       th:href="@{/workouts/new/{id}(id=${planDay.id}, date=${calendar.selectedDay().date})}">
+                                        <span th:text="${planDay.weekday} + ' · ' + ${planDay.type}"></span>
+                                        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                                            <path d="M4 8h8M8 4l4 4-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <!-- Chronological Recent Workouts Disclosure -->
+        <details class="training-panel calendar-history-disclosure" th:unless="${#lists.isEmpty(history)}">
+            <summary>
+                <span>Recent workout sessions list</span>
+                <span class="calendar-stat-pill" th:text="${history.size()} + (${history.size() == 1} ? ' session' : ' sessions')"></span>
+            </summary>
+            <ul class="workout-history">
+                <li th:each="item : ${history}">
+                    <a th:href="@{/workouts/{id}(id=${item.id})}" th:text="${item.date} + ' · Workout ' + ${item.id}"></a>
+                    <span class="field-help" th:text="${#strings.replace(item.status, '_', ' ')} + ' · Plan ' + ${item.planId}"></span>
+                </li>
+            </ul>
+            <p class="field-help">Showing up to 20 recent workouts. Cancelled drafts are excluded from progression evidence.</p>
+        </details>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+<script th:src="@{/js/workout-calendar.js}" defer></script>
+</body>
+</html>

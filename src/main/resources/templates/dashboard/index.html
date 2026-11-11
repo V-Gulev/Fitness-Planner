@@ -111,6 +111,45 @@
                 <p class="field-help">Counts use the workout date and sets in completed logs.</p>
             </section>
 
+            <section class="dashboard-mini-calendar" data-mini-calendar aria-labelledby="mini-cal-title">
+                <div class="dashboard-section-heading">
+                    <h2 id="mini-cal-title" th:text="${calendar.label()}"></h2>
+                    <a class="dashboard-text-link" th:href="@{/workouts} + '#workout-calendar'">Full calendar</a>
+                </div>
+                <div class="mini-cal-weekdays" aria-hidden="true">
+                    <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+                </div>
+                <div class="mini-cal-grid">
+                    <th:block th:each="day : ${calendar.days}">
+                        <a th:if="${day.selectable()}"
+                           class="mini-cal-cell is-interactive"
+                           th:classappend="${(day.trained() ? 'is-trained ' : '') + (day.hasDraft() ? 'is-draft ' : '') + (day.today ? 'is-today' : '')}"
+                           th:href="@{/workouts(month=${calendar.month}, date=${day.date})} + '#workout-calendar'"
+                           th:attr="data-mini-day=${day.date},
+                                    data-mini-label=${day.label()},
+                                    data-mini-detail=${day.hasSessions() ? (day.primaryTitle() + ' · ' + day.sessions.getFirst().completedExercises + '/' + day.sessions.getFirst().totalExercises + ' exercises · ' + day.sessions.getFirst().totalSets + ' sets') : 'Rest day · click to inspect or log'},
+                                    data-mini-badge=${day.trained() ? 'Completed' : (day.hasDraft() ? 'Draft' : (day.cancelled > 0 ? 'Cancelled' : ''))},
+                                    data-mini-tone=${day.trained() ? 'completed' : (day.hasDraft() ? 'draft' : 'neutral')},
+                                    aria-label=${day.label() + (day.primaryTitle() != null ? ', ' + day.primaryTitle() : ', no workout logged')}"
+                           th:text="${day.date.dayOfMonth}"></a>
+                        <span th:unless="${day.selectable()}"
+                              class="mini-cal-cell is-passive"
+                              th:classappend="${(!day.inMonth ? 'is-outside ' : '') + (day.future ? 'is-future ' : '')}"
+                              th:text="${day.date.dayOfMonth}"
+                              aria-hidden="true"></span>
+                    </th:block>
+                </div>
+                <div class="mini-cal-preview" data-mini-preview aria-live="polite">
+                    <div class="mini-cal-preview-top">
+                        <strong data-mini-preview-title th:text="${calendar.trainingDays == 0 ? 'This month' : calendar.trainingDays + (calendar.trainingDays == 1 ? ' day trained this month' : ' days trained this month')}"></strong>
+                        <span class="mini-cal-preview-badge" data-mini-preview-status data-tone="neutral"
+                              th:text="${calendar.completedSessions > 0 ? calendar.completedSessions + ' logged' : ''}"
+                              th:hidden="${calendar.completedSessions == 0}"></span>
+                    </div>
+                    <span class="mini-cal-preview-meta" data-mini-preview-meta>Hover or tap a day to inspect what you did.</span>
+                </div>
+            </section>
+
             <section aria-labelledby="recent-title">
                 <div class="dashboard-section-heading">
                     <h2 id="recent-title">Recent workouts</h2>
@@ -118,13 +157,19 @@
                 </div>
                 <p class="dashboard-empty" th:if="${#lists.isEmpty(activity.recent)}">Your drafts and completed workouts will appear here when you start logging.</p>
                 <ul class="dashboard-log" th:unless="${#lists.isEmpty(activity.recent)}" role="list">
-                    <li th:each="workout : ${activity.recent}">
+                    <li th:each="workout : ${activity.recent}" th:with="detail=${recentDetails != null ? recentDetails.get(workout.id) : null}">
                         <a th:href="@{/workouts/{id}(id=${workout.id})}">
                             <span>
-                                <time th:datetime="${workout.date}" th:text="${#temporals.format(workout.date, 'd MMM yyyy')}"></time>
-                                <small th:text="|Workout ${workout.id}|"></small>
+                                <strong class="dashboard-log-title" th:text="${detail != null ? detail.shortLabel() : 'Workout ' + workout.id}"></strong>
+                                <small>
+                                    <time th:datetime="${workout.date}" th:text="${#temporals.format(workout.date, 'd MMM yyyy')}"></time>
+                                    <th:block th:if="${detail != null}" th:text="' · ' + ${detail.completedExercises} + '/' + ${detail.totalExercises} + ' exercises · ' + ${detail.totalSets} + ' sets'"></th:block>
+                                    <th:block th:if="${detail == null}" th:text="| · Workout ${workout.id}|"></th:block>
+                                </small>
                             </span>
-                            <span class="dashboard-log-status" th:text="${workout.status.name() == 'IN_PROGRESS' ? 'Draft' : (workout.status.name() == 'COMPLETED' ? 'Completed' : 'Cancelled')}"></span>
+                            <span class="dashboard-log-status"
+                                  th:classappend="${workout.status.name() == 'COMPLETED' ? 'is-completed' : (workout.status.name() == 'IN_PROGRESS' ? 'is-draft' : '')}"
+                                  th:text="${workout.status.name() == 'IN_PROGRESS' ? 'Draft' : (workout.status.name() == 'COMPLETED' ? 'Completed' : 'Cancelled')}"></span>
                         </a>
                     </li>
                 </ul>
@@ -143,5 +188,7 @@
     </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
-</div></body>
+</div>
+<script th:src="@{/js/workout-calendar.js}" defer></script>
+</body>
 </html>

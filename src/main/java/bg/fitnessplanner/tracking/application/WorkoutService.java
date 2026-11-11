@@ -3,6 +3,7 @@ package bg.fitnessplanner.tracking.application;
 import bg.fitnessplanner.catalog.application.ExerciseSnapshot;
 import bg.fitnessplanner.catalog.domain.*;
 import bg.fitnessplanner.planning.application.SnapshotCodec;
+import bg.fitnessplanner.planning.persistence.WorkoutDay;
 import bg.fitnessplanner.profile.application.ProfileService;
 import bg.fitnessplanner.profile.persistence.*;
 import bg.fitnessplanner.progression.engine.*;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 @Service @Validated
 public class WorkoutService {
+    public static final LocalDate EARLIEST_WORKOUT_DATE = LocalDate.of(2000, 1, 1);
     private static final ZoneId ZONE = ZoneId.of("Europe/Sofia");
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.ENGLISH).withZone(ZONE);
     private final WorkoutSessionRepository sessions;
@@ -193,6 +195,66 @@ public class WorkoutService {
                 .map(this::summary).toList();
     }
     @Transactional(readOnly = true)
+    public List<CalendarSession> calendarSessions(Long owner, LocalDate from, LocalDate through) {
+        return toCalendarSessions(sessions.findByUserIdAndSessionDateBetweenOrderBySessionDateDescIdDesc(owner, from, through));
+    }
+    @Transactional(readOnly = true)
+    public Map<Long, CalendarSession> sessionDetailsByIds(Long owner, Collection<Long> ids) {
+        if (ids == null || ids.isEmpty()) return Map.of();
+        return toCalendarSessions(sessions.findByUserIdAndIdInOrderBySessionDateDescIdDesc(owner, ids))
+                .stream().collect(Collectors.toMap(CalendarSession::id, s -> s));
+    }
+    private List<CalendarSession> toCalendarSessions(List<WorkoutSession> found) {
+        if (found.isEmpty()) return List.of();
+        Set<Long> dayIds = found.stream().map(WorkoutSession::getWorkoutDayId).collect(Collectors.toSet());
+        Map<Long, String> dayTitles = days.findAllById(dayIds).stream()
+                .collect(Collectors.toMap(WorkoutDay::getId, d -> d.getDayType().getLabel()));
+        List<Long> perfIds = found.stream().flatMap(s -> s.getPerformances().stream()).map(ExercisePerformance::getId).toList();
+        Map<Long, List<WorkSet>> setsByPerf = perfIds.isEmpty() ? Map.of()
+                : performances.findByIdIn(perfIds).stream().collect(Collectors.toMap(ExercisePerformance::getId, ExercisePerformance::actualSets));
+        return found.stream().map(s -> mapCalendarSession(s, dayTitles, setsByPerf)).toList();
+    }
+    private CalendarSession mapCalendarSession(WorkoutSession s, Map<Long, String> dayTitles, Map<Long, List<WorkSet>> setsByPerf) {
+        String title = dayTitles.getOrDefault(s.getWorkoutDayId(), "Workout " + s.getId());
+        var rows = s.getPerformances();
+        int completedEx = 0;
+        int totalSets = 0;
+        int totalReps = 0;
+        List<CalendarExercise> items = new ArrayList<>(rows.size());
+        for (var p : rows) {
+            var rx = prescription(p);
+            var actual = setsByPerf.getOrDefault(p.getId(), List.of());
+            if (p.getStatus() == PerformanceStatus.COMPLETED) completedEx++;
+            if (p.getStatus() != PerformanceStatus.SKIPPED) {
+                totalSets += actual.size();
+                totalReps += actual.stream().mapToInt(WorkSet::reps).sum();
+            }
+            items.add(new CalendarExercise(p.getExerciseId(), rx.name(), p.getStatus(), actual.size(),
+                    formatExerciseSummary(rx, p.getStatus(), actual)));
+        }
+        return new CalendarSession(s.getId(), s.getPlanId(), s.getWorkoutDayId(), s.getSessionDate(),
+                s.getStatus(), title, completedEx, rows.size(), totalSets, totalReps, List.copyOf(items));
+    }
+    private static String formatExerciseSummary(Prescription rx, PerformanceStatus status, List<WorkSet> actual) {
+        if (status == PerformanceStatus.SKIPPED) return "Skipped";
+        if (actual.isEmpty()) return status == PerformanceStatus.PENDING ? "Not logged yet" : "No sets logged";
+        String setsLabel = actual.size() == 1 ? "1 set" : actual.size() + " sets";
+        int repsSum = actual.stream().mapToInt(WorkSet::reps).sum();
+        WorkSet best = actual.stream().max(Comparator.comparing(WorkSet::weightKg).thenComparingInt(WorkSet::reps)).orElseThrow();
+        String weight = formatWeight(best.weightKg());
+        return switch (rx.loadType()) {
+            case BODYWEIGHT -> best.weightKg().compareTo(BigDecimal.ZERO) > 0
+                    ? setsLabel + " · +" + weight + " kg × " + best.reps()
+                    : setsLabel + " · " + repsSum + " reps";
+            case ASSISTED -> setsLabel + " · " + weight + " kg assist × " + best.reps();
+            case PER_HAND_EXTERNAL -> setsLabel + " · " + weight + " kg/hand × " + best.reps();
+            case TOTAL_EXTERNAL -> setsLabel + " · " + weight + " kg × " + best.reps();
+        };
+    }
+    private static String formatWeight(BigDecimal weight) {
+        return weight.compareTo(BigDecimal.ZERO) == 0 ? "0" : weight.stripTrailingZeros().toPlainString();
+    }
+    @Transactional(readOnly = true)
     public List<History> exerciseHistory(Long owner, Long exercise) {
         return recent(owner, exercise, today(), 10).stream().map(p -> new History(p.getSession().getId(), p.getSession().getSessionDate(),
                 prescription(p), p.getStatus(), p.actualSets())).toList();
@@ -213,7 +275,7 @@ public class WorkoutService {
     private Prescription prescription(ExercisePerformance p) { return codec.read(p.getPrescriptionSnapshot(), Prescription.class); }
     private WorkoutSession owned(Long owner, Long id) { return sessions.findByIdAndUserId(id, owner).orElseThrow(WorkoutNotFoundException::new); }
     private void validDate(LocalDate date) {
-        if (date == null || date.isBefore(LocalDate.of(2000, 1, 1)) || date.isAfter(today()))
+        if (date == null || date.isBefore(EARLIEST_WORKOUT_DATE) || date.isAfter(today()))
             throw new WorkoutInputException("Choose a workout date from 1 January 2000 through today.");
     }
     private void checkVersion(WorkoutSession s, Long version) {

@@ -13,6 +13,8 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 @Controller
@@ -36,12 +38,35 @@ public class WorkoutController {
         binder.setAllowedFields("version", "performances[*].id", "performances[*].status",
                 "performances[*].sets[*].reps", "performances[*].sets[*].weightKg", "performances[*].sets[*].rir");
     }
-    @GetMapping("/workouts") String history(@AuthenticationPrincipal AccountPrincipal account, Model model) {
+    @GetMapping("/workouts")
+    String history(@AuthenticationPrincipal AccountPrincipal account,
+                   @RequestParam(required = false) String month,
+                   @RequestParam(required = false) String date,
+                   Model model) {
         Long owner = account.getAccountId();
+        LocalDate today = workouts.today();
+        YearMonth requestedMonth = parseMonth(month);
+        LocalDate requestedDate = parseDate(date);
+        YearMonth resolvedMonth = WorkoutCalendar.resolveMonth(requestedMonth, requestedDate, today);
+        var bounds = WorkoutCalendar.gridBounds(resolvedMonth);
+        var calendar = WorkoutCalendar.of(resolvedMonth, requestedDate, today,
+                workouts.calendarSessions(owner, bounds.from(), bounds.through()));
         model.addAttribute("history", workouts.history(owner));
+        model.addAttribute("calendar", calendar);
+        model.addAttribute("today", today);
         model.addAttribute("plan", plans.page(owner, null).plan());
         model.addAttribute("openDayIds", workouts.openDraftDayIds(owner));
         return "tracking/history";
+    }
+    private static YearMonth parseMonth(String value) {
+        if (value == null || value.isBlank()) return null;
+        try { return YearMonth.parse(value.trim()); }
+        catch (DateTimeParseException ignored) { return null; }
+    }
+    private static LocalDate parseDate(String value) {
+        if (value == null || value.isBlank()) return null;
+        try { return LocalDate.parse(value.trim()); }
+        catch (DateTimeParseException ignored) { return null; }
     }
     @PostMapping("/workouts/start/{dayId}") String quickStart(@AuthenticationPrincipal AccountPrincipal account,
             @PathVariable Long dayId, RedirectAttributes redirect) {

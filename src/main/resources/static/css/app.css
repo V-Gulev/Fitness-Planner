@@ -926,22 +926,29 @@ details[open] > summary .chevron-icon {
 .cell-rest { text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: .84rem; }
 
 .plan-modern-table .selection-reason {
-    margin-top: .25rem;
-    font-size: .75rem;
-    max-width: 42ch;
+    margin-top: .35rem;
+    font-size: .78rem;
+    max-width: 65ch;
 }
 .plan-modern-table .selection-reason summary {
-    font-size: .74rem;
+    font-size: .75rem;
+    font-weight: 500;
     color: var(--muted);
     cursor: pointer;
+    transition: color 0.15s ease;
+    user-select: none;
 }
 .plan-modern-table .selection-reason summary:hover {
-    color: var(--text);
+    color: var(--accent);
 }
 .plan-modern-table .selection-reason p {
-    margin: .4rem 0 0;
-    color: var(--muted);
-    line-height: 1.45;
+    margin: .45rem 0 0;
+    color: #b5c2aa;
+    line-height: 1.5;
+    background: rgba(197, 231, 119, 0.04);
+    border-left: 2px solid var(--accent);
+    padding: .45rem .7rem;
+    border-radius: 0 4px 4px 0;
 }
 
 .button-sm {
@@ -1237,8 +1244,27 @@ details[open] > summary .chevron-icon {
     transition: transform 180ms ease-out;
 }
 .dashboard-session[open] > summary::after { transform: translateY(.15rem) rotate(225deg); }
-.dashboard-session > .selection-reason { margin-top: .75rem; }
-.dashboard-session .selection-reason p { margin-bottom: 0; }
+.dashboard-session > .selection-reason { margin-top: .75rem; max-width: 65ch; }
+.dashboard-session .selection-reason summary {
+    font-size: .78rem;
+    font-weight: 500;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+.dashboard-session .selection-reason summary:hover {
+    color: var(--accent);
+}
+.dashboard-session .selection-reason p {
+    margin-top: .45rem;
+    margin-bottom: 0;
+    color: #b5c2aa;
+    line-height: 1.5;
+    background: rgba(197, 231, 119, 0.04);
+    border-left: 2px solid var(--accent);
+    padding: .45rem .7rem;
+    border-radius: 0 4px 4px 0;
+}
 .dashboard-prescription { padding: 0; margin: .35rem 0 0; list-style: none; }
 .dashboard-prescription li {
     display: flex;

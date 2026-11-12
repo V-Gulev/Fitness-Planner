@@ -1,8 +1,11 @@
 package bg.fitnessplanner.planning.web;
 
 import bg.fitnessplanner.account.application.AccountPrincipal;
+import bg.fitnessplanner.catalog.application.ExerciseSnapshot;
 import bg.fitnessplanner.planning.application.*;
+import bg.fitnessplanner.planning.engine.ExerciseExplainer;
 import bg.fitnessplanner.planning.engine.PlanningModel.*;
+import bg.fitnessplanner.planning.engine.PlanningRules;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -61,7 +64,7 @@ public class PlanCustomizationController {
 
         Plan draft;
         try {
-            draft = readDraft(editor.base(), fields);
+            draft = readDraft(editor.base(), fields, editor.input());
         } catch (IllegalArgumentException invalid) {
             model.addAttribute("formProblem", "The editor could not read those values. Review the exercise rows and try again.");
             return editorPage(id, editor, editor.base(), model);
@@ -81,7 +84,8 @@ public class PlanCustomizationController {
         return editorPage(id, editor, draft, model);
     }
 
-    private static Plan readDraft(Plan base, MultiValueMap<String, String> fields) {
+    private static Plan readDraft(Plan base, MultiValueMap<String, String> fields, PlanInputReader.Inputs inputs) {
+        var known = PlanningRules.byId(inputs.catalog());
         var days = new ArrayList<Day>();
         for (Day original : base.days()) {
             int weekday = original.weekday();
@@ -96,13 +100,21 @@ public class PlanCustomizationController {
                     || max.size() != ids.size() || rest.size() != ids.size()) {
                 throw new IllegalArgumentException("Invalid exercise rows.");
             }
+            DayType dayType = DayType.valueOf(type);
             var exercises = new ArrayList<Exercise>();
             for (int i = 0; i < ids.size(); i++) {
                 long exerciseId = Long.parseLong(ids.get(i));
-                exercises.add(new Exercise(exerciseId, Integer.parseInt(sets.get(i)), Integer.parseInt(min.get(i)),
-                        Integer.parseInt(max.get(i)), Integer.parseInt(rest.get(i)), "Selected in your plan editor.", null));
+                int setNum = Integer.parseInt(sets.get(i));
+                int repMin = Integer.parseInt(min.get(i));
+                int repMax = Integer.parseInt(max.get(i));
+                int restSec = Integer.parseInt(rest.get(i));
+                ExerciseSnapshot meta = known.get(exerciseId);
+                String explanation = meta != null
+                        ? ExerciseExplainer.explain(meta, inputs.profile(), setNum, repMin, repMax, restSec, dayType, i)
+                        : "Selected in your plan editor.";
+                exercises.add(new Exercise(exerciseId, setNum, repMin, repMax, restSec, explanation, null));
             }
-            days.add(new Day(weekday, DayType.valueOf(type), exercises));
+            days.add(new Day(weekday, dayType, exercises));
         }
         return new Plan(days.stream().map(day -> day.type().name()).collect(Collectors.joining("/")), days);
     }

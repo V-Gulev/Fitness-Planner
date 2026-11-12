@@ -100,16 +100,20 @@ public final class ScoredPlanner implements Planner {
                 boolean preferred = draft.profile.preferredExerciseIds().contains(e.id());
                 Score score = scorer.score(e, sets, draft.profile, volume, target, preferred, !used.contains(e.id()), patterns, compoundSets);
                 if (improvement && (score.muscle().signum() <= 0 || score.total().signum() <= 0)) continue;
-                String reason = (score.muscle().signum() > 0 ? "Addresses remaining weekly volume. " : "Keeps this selected day nonempty. ")
-                        + "Adds " + sets + " primary sets for " + e.primaryMuscle().getLabel().toLowerCase(Locale.ROOT) + ". "
-                        + (preferred ? "Matches your exercise preference. " : "")
-                        + "Equipment, experience, exclusions, estimated time and primary-muscle spacing pass.";
-                Exercise item = new Exercise(e.id(), sets, base.repMin(), base.repMax(), base.restSeconds(), reason, score);
+                Exercise item = new Exercise(e.id(), sets, base.repMin(), base.repMax(), base.restSeconds(), "", score);
                 Addition addition = new Addition(day, item, score, PlanningRules.seconds(item, e), e.code(), draft.weekdays.get(day));
                 if (best == null || ADDITION_ORDER.compare(addition, best) < 0) best = addition;
             }
         }
-        return best;
+        if (best == null) return null;
+        var chosen = draft.catalog.get(best.exercise().exerciseId());
+        String explanation = ExerciseExplainer.explain(chosen, draft.profile, best.exercise().sets(),
+                best.exercise().repMin(), best.exercise().repMax(), best.exercise().restSeconds(),
+                draft.types.get(best.day()), draft.days.get(best.day()).size());
+        Exercise finalItem = new Exercise(best.exercise().exerciseId(), best.exercise().sets(),
+                best.exercise().repMin(), best.exercise().repMax(), best.exercise().restSeconds(),
+                explanation, best.score());
+        return new Addition(best.day(), finalItem, best.score(), best.seconds(), best.code(), best.weekday());
     }
 
     private static int compare(Result a, Result b) {

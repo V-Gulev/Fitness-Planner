@@ -49,8 +49,9 @@ public final class BaselinePlanner implements Planner {
             for (ExerciseSnapshot e : eligible) {
                 if (e.primaryMuscle() != muscles[index]) continue;
                 examined[0]++;
-                Exercise item = PlanningRules.prescribe(e, draft.profile, 3, config,
-                        "Selected by stable-code muscle rotation with three sets; equipment, skill, time, exclusions and primary spacing pass.", null);
+                String explanation = ExerciseExplainer.explain(e, draft.profile, 3, config,
+                        draft.types.get(day), draft.days.get(day).size());
+                Exercise item = PlanningRules.prescribe(e, draft.profile, 3, config, explanation, null);
                 if (draft.canAdd(day, e, item)) {
                     draft.days.get(day).add(item);
                     cursor[0] = (index + 1) % muscles.length;

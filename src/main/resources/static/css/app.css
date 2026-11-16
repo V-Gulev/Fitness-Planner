@@ -886,11 +886,11 @@ details[open] > summary .chevron-icon {
     vertical-align: middle;
 }
 
-/* Precise column sizing to eliminate dead empty space */
-.col-exercise { width: auto; text-align: left; }
-.col-sets { width: 4.5rem; text-align: center; }
-.col-reps { width: 5.5rem; text-align: center; }
-.col-rest { width: 5rem; text-align: right; }
+/* Precise column sizing for plan tables to eliminate dead empty space */
+.plan-modern-table .col-exercise { width: auto; text-align: left; }
+.plan-modern-table .col-sets { width: 4.5rem; text-align: center; }
+.plan-modern-table .col-reps { width: 5.5rem; text-align: center; }
+.plan-modern-table .col-rest { width: 5rem; text-align: right; }
 
 .cell-exercise { font-weight: 400; text-align: left; }
 .exercise-name-row {
@@ -1163,32 +1163,937 @@ details[open] > summary .chevron-icon {
 .date-choice { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; }
 .date-choice + .field-help { margin-block: 1rem 2rem; max-width: 72ch; }
 .workout-target-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin-top: .8rem; }
-.workout-entry { margin-block: 1rem; }
+.workout-entry { margin-block: 1.5rem; }
 .workout-entry > :last-child { margin-bottom: 0; }
 .workout-entry h2 { font-size: 2rem; margin-bottom: .5rem; }
 .prescription-line { color: var(--text); margin-bottom: .3rem; }
 .suggestion-copy { max-width: 72ch; color: var(--muted); }
-.actual-entry { margin-top: 1.75rem; }
+.actual-entry { margin-top: 1.25rem; }
 .status-field { max-width: 22rem; margin-bottom: 1.5rem; }
-.work-sets { max-width: 45rem; }
+.work-sets { max-width: 100%; border: none; padding: 0; margin: 0; }
 .set-row { display: grid; grid-template-columns: 4rem repeat(3, minmax(0, 1fr)); gap: 1rem; align-items: end; margin-bottom: 1rem; }
-.set-label { padding-bottom: .8rem; color: var(--muted); }
-.set-row label { font-size: .88rem; }
-.set-row label input { margin-top: .4rem; width: 100%; }
-.set-row .field-help { font-size: .7rem; }
+.set-label { color: var(--muted); }
 .actual-set-list { padding-left: 1.5rem; line-height: 2; font-variant-numeric: tabular-nums; }
 .workout-history { padding: 0; list-style: none; }
 .workout-history li { padding-block: 1rem; border-bottom: 1px solid var(--line); }
 .workout-history .field-help { display: block; margin-top: .35rem; }
-.cancel-workout { margin-block: 2rem; }
-.workout-entry .selection-reason { max-width: 72ch; }
+.cancel-workout { margin-block: 2.5rem 1.5rem; text-align: center; }
+.cancel-workout .field-help { margin-inline: auto; }
+.workout-entry .selection-reason { max-width: 72ch; margin-block: .75rem 1rem; }
 [hidden] { display: none !important; }
-@media (max-width: 640px) {
-    .set-row { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; padding-block: .5rem; }
-    .set-label { grid-column: 1 / -1; padding-bottom: 0; }
-    .set-row label { font-size: .8rem; }
-    .set-row input { padding-inline: .45rem; }
-    .set-row .field-help { display: block; }
+
+/* ==========================================================================
+   WORKOUT LOGGING & SESSION WORKSPACE (MODERN ATHLETIC REDESIGN)
+   ========================================================================== */
+
+/* Breadcrumb Navigation */
+.workout-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .84rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+}
+.workout-breadcrumb a {
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    transition: color .15s ease;
+}
+.workout-breadcrumb a:hover { color: var(--accent); }
+.breadcrumb-sep { color: var(--line); }
+.breadcrumb-current { color: var(--text); font-weight: 500; }
+
+/* Session Header */
+.workout-session-header {
+    margin-bottom: 2rem;
+}
+.session-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem;
+    margin-bottom: .85rem;
+}
+.workout-status-badge {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .3rem .75rem;
+    border-radius: var(--radius-pill);
+    background: rgba(197, 231, 119, 0.12);
+    color: var(--accent);
+    border: 1px solid rgba(197, 231, 119, 0.3);
+}
+.workout-status-badge.is-completed {
+    background: rgba(197, 231, 119, 0.18);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+.workout-status-badge.is-cancelled {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.workout-date-badge, .workout-id-badge {
+    font-size: .76rem;
+    color: var(--muted);
+    padding: .25rem .65rem;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+}
+.session-title {
+    margin: 0 0 .5rem;
+    font-size: clamp(2.6rem, 5vw, 4.25rem);
+    letter-spacing: -.02em;
+    line-height: 1.05;
+}
+.session-subtitle {
+    margin: 0;
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 68ch;
+}
+
+/* Preserved Session Hero Banner (when completed or cancelled) */
+.session-completed-hero {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: color-mix(in srgb, var(--surface), var(--accent) 5%);
+    border: 1px solid color-mix(in srgb, var(--line), var(--accent) 30%);
+    border-radius: var(--radius-panel);
+    margin-bottom: 2rem;
+}
+.completed-hero-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(197, 231, 119, 0.15);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 16px rgba(197, 231, 119, 0.25);
+}
+.completed-hero-title {
+    margin: 0 0 .35rem;
+    font-size: 1.8rem;
+    line-height: 1.1;
+    color: var(--text);
+}
+.completed-hero-meta {
+    font-size: .88rem;
+    color: var(--accent);
+    margin-bottom: .4rem;
+}
+.completed-hero-desc {
+    margin: 0;
+    color: var(--muted);
+    font-size: .9rem;
+    max-width: 60ch;
+}
+
+/* Workout HUD Card */
+.workout-hud-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.25rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    position: relative;
+    overflow: hidden;
+}
+.workout-hud-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+}
+.hud-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1rem;
+}
+.hud-metric {
+    display: flex;
+    flex-direction: column;
+}
+.hud-label {
+    font-size: .74rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: .25rem;
+}
+.hud-value {
+    font-size: 1.35rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    font-family: var(--heading-font);
+    letter-spacing: .02em;
+}
+.hud-value strong {
+    color: var(--accent);
+    font-weight: 700;
+}
+.hud-progress-track {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    position: relative;
+}
+.hud-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #9ec845, var(--accent));
+    border-radius: var(--radius-pill);
+    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 10px rgba(197, 231, 119, 0.4);
+}
+
+/* Exercise Quick-Jump Pills */
+.exercise-nav-pills {
+    display: flex;
+    gap: .5rem;
+    overflow-x: auto;
+    padding-bottom: .35rem;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.exercise-nav-pills::-webkit-scrollbar { display: none; }
+.exercise-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .4rem .85rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--muted);
+    font-size: .78rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.exercise-pill:hover {
+    color: var(--text);
+    border-color: var(--control-line);
+    background: rgba(255, 255, 255, 0.06);
+}
+.exercise-pill .pill-number {
+    font-family: var(--heading-font);
+    font-weight: 700;
+    font-size: .85rem;
+    color: var(--accent);
+}
+.exercise-pill .pill-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background .2s ease;
+}
+.exercise-pill.is-finished {
+    border-color: rgba(197, 231, 119, 0.3);
+    color: var(--text);
+}
+.exercise-pill.is-finished .pill-status-dot {
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+}
+
+/* Workout Exercise Card */
+.workout-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-panel);
+    padding: clamp(1.25rem, 3vw, 2rem);
+    margin-bottom: 2rem;
+    transition: border-color .25s ease, box-shadow .25s ease, opacity .25s ease;
+    position: relative;
+    animation: cardEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.workout-card.is-status-completed {
+    border-color: color-mix(in srgb, var(--line), var(--accent) 35%);
+}
+.workout-card.is-status-skipped {
+    opacity: 0.6;
+    border-color: var(--line);
+}
+.workout-card.is-highlighted {
+    box-shadow: 0 0 0 2px var(--accent), 0 10px 30px rgba(197, 231, 119, 0.2);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.exercise-step-tag {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--accent);
+    margin-bottom: .35rem;
+}
+.exercise-name {
+    margin: 0 0 .5rem;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--text);
+}
+.exercise-meta-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem .6rem;
+    align-items: center;
+}
+.meta-tag {
+    font-size: .76rem;
+    font-weight: 500;
+    padding: .2rem .6rem;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+.meta-tag.tag-target {
+    background: rgba(197, 231, 119, 0.1);
+    color: var(--accent);
+    border-color: rgba(197, 231, 119, 0.25);
+    font-weight: 600;
+}
+
+/* Status Segment Control */
+.status-segment-group {
+    position: relative;
+}
+.status-native-select {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 0; height: 0;
+}
+.status-pill-toggle {
+    display: inline-flex;
+    background: var(--background);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+    gap: 2px;
+}
+.status-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: .76rem;
+    font-weight: 500;
+    padding: .35rem .75rem;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+.status-btn:hover {
+    color: var(--text);
+}
+.status-btn.is-active[data-status="PENDING"] {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.status-btn.is-active[data-status="COMPLETED"] {
+    background: var(--accent);
+    color: var(--background);
+    font-weight: 700;
+    box-shadow: 0 0 10px rgba(197, 231, 119, 0.35);
+}
+.status-btn.is-active[data-status="SKIPPED"] {
+    background: #383c34;
+    color: #9ba393;
+}
+
+/* Rest Timer Widget */
+.rest-timer-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: .7rem 1rem;
+    margin-block: 1rem 1.25rem;
+    position: relative;
+    overflow: hidden;
+}
+.rest-timer-bar.is-timer-running {
+    border-color: rgba(197, 231, 119, 0.4);
+    box-shadow: 0 0 16px rgba(197, 231, 119, 0.12);
+}
+.rest-timer-bar.is-timer-finished {
+    border-color: var(--accent);
+    animation: timerRingPulse 1.2s infinite ease-in-out;
+}
+.timer-info {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+}
+.timer-icon {
+    color: var(--accent);
+}
+.timer-label {
+    font-size: .78rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+.timer-clock {
+    font-family: var(--heading-font);
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .03em;
+    min-width: 4.5ch;
+}
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.timer-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    font-size: .76rem;
+    font-weight: 600;
+    padding: .35rem .75rem;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    transition: all .15s ease;
+}
+.timer-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.timer-btn-start {
+    background: rgba(197, 231, 119, 0.12);
+    border-color: rgba(197, 231, 119, 0.3);
+    color: var(--accent);
+}
+.timer-btn-start:hover {
+    background: var(--accent);
+    color: var(--background);
+}
+.timer-progress-track {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.timer-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 1s linear;
+}
+
+/* Sets Table Header & Grid */
+.sets-header-row {
+    display: grid;
+    grid-template-columns: 3.75rem minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(75px, 0.8fr) 4.5rem;
+    gap: .75rem;
+    align-items: center;
+    padding: .4rem .6rem;
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: .6rem;
+}
+.work-sets.has-target .sets-header-row {
+    grid-template-columns: 3.5rem 5.5rem minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(75px, 0.8fr) 4.5rem;
+}
+.sets-header-row .col-target,
+.sets-header-row .col-weight,
+.sets-header-row .col-reps,
+.sets-header-row .col-rir,
+.sets-header-row .col-action {
+    text-align: center;
+}
+.card-set-row {
+    display: grid;
+    grid-template-columns: 3.75rem minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(75px, 0.8fr) 4.5rem;
+    gap: .75rem;
+    align-items: center;
+    padding: .5rem .6rem;
+    border-radius: 10px;
+    margin-bottom: .5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    transition: all .2s ease;
+}
+.work-sets.has-target .card-set-row {
+    grid-template-columns: 3.5rem 5.5rem minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(75px, 0.8fr) 4.5rem;
+}
+.card-set-row .set-input-col {
+    width: 100%;
+    min-width: 0;
+}
+.card-set-row .col-weight,
+.card-set-row .col-reps,
+.card-set-row .col-rir {
+    width: 100% !important;
+}
+.card-set-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+.card-set-row.is-completed {
+    background: rgba(197, 231, 119, 0.04);
+    border-color: rgba(197, 231, 119, 0.2);
+}
+.card-set-row.is-new {
+    animation: setSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.set-badge-col .set-label {
+    font-family: var(--heading-font);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--muted);
+    padding: 0;
+}
+.btn-copy-target {
+    border: 1px dashed var(--line);
+    background: transparent;
+    color: var(--muted);
+    font-size: .8rem;
+    font-weight: 600;
+    height: 46px;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 .4rem;
+    border-radius: var(--radius-input);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: all .15s ease;
+}
+.btn-copy-target:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(197, 231, 119, 0.08);
+}
+
+/* Numeric Stepper Inputs */
+.stepper-input {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    height: 46px;
+    min-height: 46px;
+    background: var(--background);
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-input);
+    overflow: hidden;
+    position: relative;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.stepper-input:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(197, 231, 119, 0.2);
+}
+.stepper-btn {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    width: 2.25rem;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+    transition: color .15s ease, background .15s ease;
+}
+.stepper-btn:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.06);
+}
+.stepper-btn:active {
+    background: rgba(255, 255, 255, 0.12);
+}
+.stepper-input input,
+.stepper-input input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text) !important;
+    text-align: center !important;
+    font-variant-numeric: tabular-nums !important;
+    font-weight: 600 !important;
+    font-size: 1.05rem !important;
+    line-height: 44px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 44px !important;
+    padding: 0 .25rem !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.stepper-input input::-webkit-outer-spin-button,
+.stepper-input input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.stepper-input input::placeholder {
+    color: var(--muted) !important;
+    opacity: 0.8 !important;
+    line-height: 44px !important;
+}
+.stepper-input input:focus { outline: none; }
+.compact-label { display: none; }
+
+/* RIR Column Input */
+.col-rir input,
+.col-rir input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
+    width: 100%;
+    height: 46px;
+    min-height: 46px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 44px;
+    padding: 0 .4rem !important;
+    background: var(--background);
+    border: 1px solid var(--control-line);
+    border-radius: var(--radius-input);
+    color: var(--text);
+    -moz-appearance: textfield;
+    appearance: textfield;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.col-rir input::-webkit-outer-spin-button,
+.col-rir input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.col-rir input::placeholder {
+    color: var(--muted) !important;
+    opacity: 0.8 !important;
+    line-height: 44px !important;
+}
+.col-rir input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(197, 231, 119, 0.2);
+    outline: none;
+}
+
+/* Set Checkmark & Clear Action Col */
+.set-check-col {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    justify-content: center;
+    height: 46px;
+}
+.btn-check-set {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line);
+    background: transparent;
+    color: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-check-set:hover {
+    border-color: var(--accent);
+    color: rgba(197, 231, 119, 0.4);
+}
+.card-set-row.is-completed .btn-check-set {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--background);
+    box-shadow: 0 0 10px rgba(197, 231, 119, 0.4);
+    animation: checkmarkPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-clear-set {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    opacity: 0.5;
+    transition: opacity .15s ease, color .15s ease;
+}
+.btn-clear-set:hover {
+    opacity: 1;
+    color: #f87171;
+}
+
+/* Set Actions Toolbar */
+.set-actions-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+    margin-top: .85rem;
+    padding-top: .6rem;
+}
+.toolbar-left {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .6rem;
+}
+.exercise-volume-badge {
+    font-size: .8rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+.exercise-volume-badge strong {
+    color: var(--accent);
+}
+.set-help-text {
+    font-size: .75rem;
+    color: var(--muted);
+    margin-top: .5rem;
+}
+
+/* Preserved Sets View (when completed) */
+.completed-sets-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .5rem;
+}
+.completed-set-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem .85rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: .84rem;
+    font-variant-numeric: tabular-nums;
+}
+.chip-set-num {
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--heading-font);
+}
+.chip-weight {
+    color: var(--text);
+    font-weight: 600;
+}
+.chip-sep {
+    color: var(--muted);
+}
+.chip-reps {
+    color: var(--text);
+}
+.chip-rir {
+    font-size: .74rem;
+    color: var(--muted);
+    padding-left: .25rem;
+    border-left: 1px solid var(--line);
+    margin-left: .25rem;
+}
+.card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    padding-top: .75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.exercise-history-link {
+    font-size: .82rem;
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    transition: color .15s ease;
+}
+.exercise-history-link:hover {
+    color: var(--accent);
+}
+
+/* Sticky Action Bar */
+.workout-action-bar {
+    position: sticky;
+    bottom: 1.5rem;
+    z-index: 50;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+.action-bar-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: .85rem 1.25rem;
+    background: rgba(23, 26, 23, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(197, 231, 119, 0.25);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.action-bar-info {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.action-progress-pill, .action-volume-pill {
+    font-size: .8rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+}
+.action-progress-pill span, .action-volume-pill span {
+    color: var(--accent);
+    font-weight: 700;
+}
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+.button-finish {
+    background: var(--accent);
+    color: var(--background);
+    border: 1px solid var(--accent);
+    font-weight: 700;
+    box-shadow: 0 0 14px rgba(197, 231, 119, 0.3);
+}
+.button-finish:hover {
+    background: var(--accent-hover);
+    box-shadow: 0 0 20px rgba(197, 231, 119, 0.5);
+}
+.action-bar-help {
+    text-align: center;
+    font-size: .76rem;
+    color: var(--muted);
+    margin-top: .5rem;
+}
+
+/* Animations */
+@keyframes cardEnter {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes setSlideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes checkmarkPop {
+    0% { transform: scale(0.8); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+@keyframes timerRingPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(197, 231, 119, 0); }
+    50% { box-shadow: 0 0 18px rgba(197, 231, 119, 0.4); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .sets-header-row { display: none; }
+    .card-set-row,
+    .work-sets.has-target .card-set-row {
+        grid-template-columns: 1fr 1fr;
+        gap: .6rem;
+        padding: .75rem;
+    }
+    .set-badge-col {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .set-target-col {
+        grid-column: 1 / -1;
+    }
+    .compact-label {
+        display: block;
+        font-size: .7rem;
+        color: var(--muted);
+        margin-bottom: .2rem;
+    }
+    .col-weight {
+        grid-column: 1;
+    }
+    .col-reps {
+        grid-column: 2;
+    }
+    .col-rir {
+        grid-column: 1 / -1;
+    }
+    .set-check-col {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+        padding-top: .3rem;
+        height: auto;
+    }
+    .action-bar-inner {
+        border-radius: var(--radius-panel);
+    }
+    .hud-metrics {
+        grid-template-columns: 1fr;
+        gap: .5rem;
+    }
 }
 
 

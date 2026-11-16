@@ -1,54 +1,309 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Workout log')}"></head>
-<body><div class="page-shell"><header th:replace="~{fragments/layout :: header}"></header>
-<main id="main" class="workspace" tabindex="-1">
-    <div class="page-intro"><h1 th:text="${workout.editable()} ? 'Log the work you do.' : 'Your session, preserved.'"></h1>
-        <p th:text="${workout.date} + ' · Workout ' + ${workout.id} + ' · ' + ${#strings.replace(workout.status, '_', ' ')}"></p>
-        <p class="field-help" th:text="'Started logging: ' + ${workout.startedLabel} + ' · Europe/Sofia'"></p>
-        <p class="field-help" th:if="${workout.completedLabel}" th:text="'Completed logging: ' + ${workout.completedLabel} + ' · Europe/Sofia'"></p>
+<body>
+<div class="page-shell">
+<header th:replace="~{fragments/layout :: header}"></header>
+
+<main id="main" class="workspace workout-session-page" tabindex="-1">
+    <!-- Breadcrumb -->
+    <nav class="workout-breadcrumb" aria-label="Breadcrumb">
+        <a th:href="@{/workouts}" class="breadcrumb-link">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" width="16" height="16" aria-hidden="true"><path d="M12.5 15 7.5 10l5-5"/></svg>
+            <span>All workouts</span>
+        </a>
+        <span class="breadcrumb-sep">/</span>
+        <a th:href="@{/plans/{id}(id=${workout.planId})}" class="breadcrumb-link">Original plan</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current" th:text="'Workout #' + ${workout.id}">Workout #1</span>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="workout-session-header">
+        <div class="session-badge-row">
+            <span class="workout-status-badge"
+                  th:classappend="${workout.status == T(bg.fitnessplanner.tracking.persistence.SessionStatus).COMPLETED ? 'is-completed' : (workout.status == T(bg.fitnessplanner.tracking.persistence.SessionStatus).CANCELLED ? 'is-cancelled' : 'is-in-progress')}"
+                  th:text="${#strings.replace(workout.status, '_', ' ')}">IN PROGRESS</span>
+            <span class="workout-date-badge" th:text="${workout.date}">2026-11-16</span>
+            <span class="workout-id-badge" th:text="'Workout #' + ${workout.id}">Workout #1</span>
+        </div>
+        <h1 class="session-title" th:text="${workout.editable()} ? 'Log the work you do.' : 'Your session, preserved.'"></h1>
+        <p class="session-subtitle" th:if="${workout.editable()}" th:text="'Started logging: ' + ${workout.startedLabel} + ' · Europe/Sofia'"></p>
+        <p class="session-subtitle" th:if="${workout.completedLabel}" th:text="'Completed logging: ' + ${workout.completedLabel} + ' · Europe/Sofia'"></p>
     </div>
+
+    <!-- Feedback alerts -->
     <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
-    <p><a th:href="@{/workouts}">All workouts</a> · <a th:href="@{/plans/{id}(id=${workout.planId})}">Original plan</a></p>
+
+    <!-- Preserved Session Hero Banner (when completed or cancelled) -->
+    <div class="session-completed-hero" th:unless="${workout.editable()}">
+        <div class="completed-hero-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" width="28" height="28">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m8 12 3 3 6-6"></path>
+            </svg>
+        </div>
+        <div class="completed-hero-content">
+            <h2 class="completed-hero-title" th:text="${workout.status == T(bg.fitnessplanner.tracking.persistence.SessionStatus).COMPLETED ? 'Workout Session Completed' : 'Draft Session Cancelled'}">Workout Session Completed</h2>
+            <p class="completed-hero-meta" th:if="${workout.completedLabel}" th:text="'Finished at ' + ${workout.completedLabel} + ' · Europe/Sofia'"></p>
+            <p class="completed-hero-desc" th:if="${workout.status == T(bg.fitnessplanner.tracking.persistence.SessionStatus).COMPLETED}">This session is locked in your training history and serves as evidence for progressive overload calculations.</p>
+            <p class="completed-hero-desc" th:unless="${workout.status == T(bg.fitnessplanner.tracking.persistence.SessionStatus).COMPLETED}">This draft was cancelled and is excluded from progression evidence.</p>
+        </div>
+    </div>
+
+    <!-- Active Logging HUD (when editable) -->
+    <div class="workout-hud-card" th:if="${workout.editable()}">
+        <div class="hud-metrics">
+            <div class="hud-metric">
+                <span class="hud-label">Progress</span>
+                <span class="hud-value"><strong id="hud-completed-count">0</strong> / <span th:text="${#lists.size(workout.performances)}">5</span> Finished</span>
+            </div>
+            <div class="hud-metric">
+                <span class="hud-label">Sets Logged</span>
+                <span class="hud-value"><strong id="hud-sets-count">0</strong> Sets</span>
+            </div>
+            <div class="hud-metric">
+                <span class="hud-label">Total Volume</span>
+                <span class="hud-value"><strong id="hud-volume-count">0</strong> kg</span>
+            </div>
+        </div>
+        <div class="hud-progress-track">
+            <div class="hud-progress-fill" id="hud-progress-fill" style="width: 0%;"></div>
+        </div>
+        <div class="exercise-nav-pills" role="tablist" aria-label="Jump to exercise">
+            <button type="button" class="exercise-pill" th:each="perf, pi : ${workout.performances}"
+                    th:attr="data-target-exercise=${'exercise-panel-' + pi.index}, data-index=${pi.index}">
+                <span class="pill-number" th:text="${#numbers.formatInteger(pi.count, 2)}">01</span>
+                <span class="pill-name" th:text="${perf.prescription.name}">Exercise</span>
+                <span class="pill-status-dot" aria-hidden="true"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Form -->
     <form th:action="@{/workouts/{id}(id=${workout.id})}" th:object="${workoutLogForm}" method="post">
         <input type="hidden" th:field="*{version}">
-        <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}"><p>Your changes have not been saved:</p><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div>
-        <p class="field-help" th:if="${workout.editable()}">Log work sets only. Enter reps and external load in kg; RIR is optional (0–10 reps in reserve). For bodyweight sets, enter 0 kg external load. Leave unused rows entirely blank.</p>
-        <section class="workout-entry training-panel" th:each="performance, pi : ${workout.performances}">
-            <h2 th:text="${performance.prescription.name}"></h2>
-            <p class="prescription-line" th:text="'Prescribed: ' + ${performance.prescription.sets} + ' sets · ' + ${performance.prescription.repMin} + '–' + ${performance.prescription.repMax} + ' reps · ' + ${performance.prescription.restSeconds} + ' s rest'"></p>
-            <p class="field-help" th:text="${performance.prescription.loadType.label} + ', kg'"></p>
-            <p th:if="${performance.acceptedTarget != null}" th:text="'Accepted target: ' + ${performance.acceptedTarget} + ' kg'"></p>
-            <p class="field-help" th:if="${performance.acceptedTarget == null}">No load target was accepted for this session.</p>
-            <details class="selection-reason"><summary>Suggestion when this workout started</summary><p th:text="${performance.decision.explanation}"></p><p th:text="'Evidence performance IDs: ' + ${performance.decision.evidenceIds}"></p><p th:text="'Rules: ' + ${workout.progressionVersion}"></p></details>
+        
+        <div class="feedback feedback-error" role="alert" th:if="${#fields.hasErrors('*')}">
+            <p>Your changes have not been saved:</p>
+            <ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+        </div>
+        
+        <p class="field-help intro-help" th:if="${workout.editable()}">Log work sets only. Enter reps and external load in kg; RIR is optional (0–10 reps in reserve). For bodyweight sets, enter 0 kg external load. Leave unused rows entirely blank.</p>
+
+        <!-- Exercises List -->
+        <section class="workout-entry training-panel workout-card" th:id="${'exercise-panel-' + pi.index}"
+                 th:attr="data-perf-index=${pi.index}, data-perf-id=${performance.id}"
+                 th:each="performance, pi : ${workout.performances}">
+            
+            <div class="card-header">
+                <div class="card-title-group">
+                    <span class="exercise-step-tag" th:text="'EXERCISE ' + ${#numbers.formatInteger(pi.count, 2)} + ' / ' + ${#numbers.formatInteger(#lists.size(workout.performances), 2)}">EXERCISE 01 / 05</span>
+                    <h2 class="exercise-name" th:text="${performance.prescription.name}">Barbell Bench Press</h2>
+                    
+                    <div class="exercise-meta-strip">
+                        <span class="meta-tag" th:text="${performance.prescription.sets} + ' Sets'">3 Sets</span>
+                        <span class="meta-tag" th:text="${performance.prescription.repMin} + '–' + ${performance.prescription.repMax} + ' Reps'">8–12 Reps</span>
+                        <span class="meta-tag" th:text="${performance.prescription.restSeconds} + 's Rest'">90s Rest</span>
+                        <span class="meta-tag tag-load" th:text="${performance.prescription.loadType.label}">Total external</span>
+                        <span class="meta-tag tag-target" th:if="${performance.acceptedTarget != null}" th:text="'Target: ' + ${performance.acceptedTarget} + ' kg'">Target: 80.00 kg</span>
+                    </div>
+                </div>
+
+                <div class="card-status-control" th:if="${workout.editable()}">
+                    <label class="visually-hidden" th:for="${'status-' + pi.index}" th:text="'Status for ' + ${performance.prescription.name}"></label>
+                    <div class="status-segment-group">
+                        <select class="status-native-select" th:id="${'status-' + pi.index}" th:field="*{performances[__${pi.index}__].status}">
+                            <option value="PENDING">In progress</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="SKIPPED">Skipped</option>
+                        </select>
+                        <div class="status-pill-toggle" role="radiogroup" th:attr="aria-label='Status for ' + ${performance.prescription.name}">
+                            <button type="button" class="status-btn" data-status="PENDING" role="radio" aria-checked="true">In progress</button>
+                            <button type="button" class="status-btn" data-status="COMPLETED" role="radio" aria-checked="false">Completed</button>
+                            <button type="button" class="status-btn" data-status="SKIPPED" role="radio" aria-checked="false">Skipped</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-status-pill" th:unless="${workout.editable()}">
+                    <span class="workout-status-badge"
+                          th:classappend="${performance.status == T(bg.fitnessplanner.tracking.persistence.PerformanceStatus).COMPLETED ? 'is-completed' : (performance.status == T(bg.fitnessplanner.tracking.persistence.PerformanceStatus).SKIPPED ? 'is-cancelled' : 'is-in-progress')}"
+                          th:text="${performance.status}">COMPLETED</span>
+                </div>
+            </div>
+
+            <!-- Coach suggestion details -->
+            <details class="selection-reason">
+                <summary>Suggestion when this workout started</summary>
+                <p th:text="${performance.decision.explanation}"></p>
+                <p class="field-help" th:text="'Evidence performance IDs: ' + ${performance.decision.evidenceIds} + ' · Rules: ' + ${workout.progressionVersion}"></p>
+            </details>
+
+            <!-- Rest Timer Widget (Interactive) -->
+            <div class="rest-timer-bar" th:if="${workout.editable()}" th:attr="data-default-seconds=${performance.prescription.restSeconds}">
+                <div class="timer-info">
+                    <svg class="timer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3 3"/>
+                    </svg>
+                    <span class="timer-label">Rest Timer</span>
+                    <span class="timer-clock">01:30</span>
+                </div>
+                <div class="timer-controls">
+                    <button type="button" class="timer-btn timer-btn-start">
+                        <svg viewBox="0 0 20 20" fill="currentColor" width="13" height="13" aria-hidden="true"><path d="M6.3 3.4A1 1 0 0 1 7.8 2.6l9 6.5a1 1 0 0 1 0 1.8l-9 6.5A1 1 0 0 1 6.3 16.6V3.4z"/></svg>
+                        <span>Start Rest</span>
+                    </button>
+                    <button type="button" class="timer-btn timer-btn-adjust" data-adjust="30">+30s</button>
+                    <button type="button" class="timer-btn timer-btn-reset" title="Reset">↺</button>
+                </div>
+                <div class="timer-progress-track"><div class="timer-progress-fill"></div></div>
+            </div>
+
+            <!-- Editable Work Sets Table -->
             <div th:if="${workout.editable()}" class="actual-entry">
                 <input type="hidden" th:field="*{performances[__${pi.index}__].id}">
-                <div class="field status-field"><label th:for="${'status-' + pi.index}" th:text="'Status for ' + ${performance.prescription.name}"></label>
-                    <select th:id="${'status-' + pi.index}" th:field="*{performances[__${pi.index}__].status}"><option value="PENDING">In progress</option><option value="COMPLETED">Completed</option><option value="SKIPPED">Skipped</option></select>
-                </div>
-                <fieldset class="work-sets" th:attr="data-performance-index=${pi.index}">
-                    <legend th:text="'Actual work sets · ' + ${performance.prescription.name}"></legend>
-                    <div class="set-row" th:each="set, si : *{performances[__${pi.index}__].sets}">
-                        <span class="set-label" th:text="'Set ' + ${si.count}"></span>
-                        <label>Reps<input type="number" min="1" max="100" th:aria-label="'Reps, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].reps}"></label>
-                        <label>Weight, kg<input type="number" min="0" max="1000" step="0.01" inputmode="decimal" th:aria-label="'Weight in kg, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].weightKg}"></label>
-                        <label>RIR <span class="field-help">optional</span><input type="number" min="0" max="10" th:aria-label="'RIR, set ' + ${si.count} + ', ' + ${performance.prescription.name}" th:field="*{performances[__${pi.index}__].sets[__${si.index}__].rir}"></label>
+                <fieldset class="work-sets"
+                          th:classappend="${performance.acceptedTarget != null ? 'has-target' : ''}"
+                          th:attr="data-performance-index=${pi.index}, data-target-load=${performance.acceptedTarget}, data-rep-min=${performance.prescription.repMin}, data-rep-max=${performance.prescription.repMax}, data-load-step=${performance.prescription.loadStep}">
+                    <legend th:text="'Actual work sets · ' + ${performance.prescription.name}">Actual work sets</legend>
+
+                    <div class="sets-header-row" aria-hidden="true">
+                        <span class="col-set">SET</span>
+                        <span class="col-target" th:if="${performance.acceptedTarget != null}">TARGET</span>
+                        <span class="col-weight">WEIGHT (KG)</span>
+                        <span class="col-reps">REPS</span>
+                        <span class="col-rir">RIR <small>(OPT)</small></span>
+                        <span class="col-action">DONE</span>
+                    </div>
+
+                    <div class="set-row card-set-row" th:each="set, si : *{performances[__${pi.index}__].sets}" th:attr="data-set-index=${si.index}">
+                        <div class="set-badge-col">
+                            <span class="set-label" th:text="'Set ' + ${si.count}">Set 1</span>
+                        </div>
+                        <div class="set-target-col" th:if="${performance.acceptedTarget != null}">
+                            <button type="button" class="btn-copy-target" th:title="'Copy ' + ${performance.acceptedTarget} + ' kg'" th:text="${performance.acceptedTarget} + ' kg'">80 kg</button>
+                        </div>
+                        <div class="set-input-col col-weight">
+                            <label class="compact-label" th:for="${'perf-' + pi.index + '-set-' + si.index + '-weight'}">Weight, kg</label>
+                            <div class="stepper-input">
+                                <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease weight">−</button>
+                                <input type="number" min="0" max="1000" step="0.01" inputmode="decimal"
+                                       th:id="${'perf-' + pi.index + '-set-' + si.index + '-weight'}"
+                                       th:aria-label="'Weight in kg, set ' + ${si.count} + ', ' + ${performance.prescription.name}"
+                                       th:field="*{performances[__${pi.index}__].sets[__${si.index}__].weightKg}"
+                                       placeholder="0.00">
+                                <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase weight">+</button>
+                            </div>
+                        </div>
+                        <div class="set-input-col col-reps">
+                            <label class="compact-label" th:for="${'perf-' + pi.index + '-set-' + si.index + '-reps'}">Reps</label>
+                            <div class="stepper-input">
+                                <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease reps">−</button>
+                                <input type="number" min="1" max="100"
+                                       th:id="${'perf-' + pi.index + '-set-' + si.index + '-reps'}"
+                                       th:aria-label="'Reps, set ' + ${si.count} + ', ' + ${performance.prescription.name}"
+                                       th:field="*{performances[__${pi.index}__].sets[__${si.index}__].reps}"
+                                       th:placeholder="${performance.prescription.repMin}">
+                                <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase reps">+</button>
+                            </div>
+                        </div>
+                        <div class="set-input-col col-rir">
+                            <label class="compact-label" th:for="${'perf-' + pi.index + '-set-' + si.index + '-rir'}">RIR</label>
+                            <input type="number" min="0" max="10"
+                                   th:id="${'perf-' + pi.index + '-set-' + si.index + '-rir'}"
+                                   th:aria-label="'RIR, set ' + ${si.count} + ', ' + ${performance.prescription.name}"
+                                   th:field="*{performances[__${pi.index}__].sets[__${si.index}__].rir}"
+                                   placeholder="—">
+                        </div>
+                        <div class="set-check-col">
+                            <button type="button" class="btn-check-set" title="Mark set completed">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" aria-hidden="true"><path d="m4.5 10 3.5 3.5 7.5-7.5"/></svg>
+                                <span class="visually-hidden">Complete set</span>
+                            </button>
+                            <button type="button" class="btn-clear-set" title="Clear this set">
+                                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+                                <span class="visually-hidden">Clear set</span>
+                            </button>
+                        </div>
                     </div>
                 </fieldset>
-                <button class="text-button add-set" type="button" hidden>Add work set</button>
-                <p class="field-help">To remove a set, clear all three values. Keep logged sets consecutive. A completed exercise may have fewer or extra sets; progression requires the exact prescription.</p>
+
+                <div class="set-actions-toolbar">
+                    <div class="toolbar-left">
+                        <button class="button button-sm button-secondary add-set" type="button">
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M10 4a1 1 0 0 1 1 1v4h4a1 1 0 1 1 0 2h-4v4a1 1 0 1 1-2 0v-4H5a1 1 0 1 1 0-2h4V5a1 1 0 0 1 1-1z"/></svg>
+                            <span>Add work set</span>
+                        </button>
+                        <button class="button button-sm button-ghost autofill-sets" type="button" th:if="${performance.acceptedTarget != null}">
+                            <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14" aria-hidden="true"><path d="M11.3 1.05a1 1 0 0 1 .9 1.45l-2.4 4.8H14a1 1 0 0 1 .8 1.6l-7 9.33a1 1 0 0 1-1.6-1.2l2.4-4.8H4.5a1 1 0 0 1-.8-1.6l7-9.33a1 1 0 0 1 .6-.25z"/></svg>
+                            <span th:text="'Autofill ' + ${performance.acceptedTarget} + ' kg'">Autofill 80 kg</span>
+                        </button>
+                    </div>
+                    <span class="exercise-volume-badge">Volume: <strong class="card-volume-val">0</strong> kg</span>
+                </div>
+                <p class="field-help set-help-text">Keep logged sets consecutive. Clear all three inputs to remove a set.</p>
             </div>
-            <div th:unless="${workout.editable()}">
-                <p th:text="'Recorded status: ' + ${performance.status}"></p>
+
+            <!-- Preserved Sets View (when completed) -->
+            <div th:unless="${workout.editable()}" class="preserved-entry">
                 <p class="field-help" th:if="${#lists.isEmpty(performance.actual)}">No sets logged.</p>
-                <ol class="actual-set-list"><li th:each="set : ${performance.actual}" th:text="${set.reps} + ' reps × ' + ${set.weightKg} + ' kg · RIR ' + ${set.rir == null ? 'not recorded' : set.rir}"></li></ol>
+                <div class="completed-sets-grid" th:unless="${#lists.isEmpty(performance.actual)}">
+                    <div class="completed-set-chip" th:each="set : ${performance.actual}">
+                        <span class="chip-set-num" th:text="'Set ' + ${set.number}">Set 1</span>
+                        <span class="chip-weight" th:text="${set.weightKg} + ' kg'">80.00 kg</span>
+                        <span class="chip-sep">×</span>
+                        <span class="chip-reps" th:text="${set.reps} + ' reps'">10 reps</span>
+                        <span class="chip-rir" th:if="${set.rir != null}" th:text="'RIR ' + ${set.rir}">RIR 2</span>
+                    </div>
+                </div>
+                <ol class="actual-set-list visually-hidden"><li th:each="set : ${performance.actual}" th:text="${set.reps} + ' reps × ' + ${set.weightKg} + ' kg · RIR ' + ${set.rir == null ? 'not recorded' : set.rir}"></li></ol>
             </div>
-            <p><a th:href="@{/workouts/exercises/{id}(id=${performance.prescription.exerciseId})}">Exercise history</a></p>
+
+            <div class="card-footer">
+                <a class="exercise-history-link" th:href="@{/workouts/exercises/{id}(id=${performance.prescription.exerciseId})}">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" width="14" height="14" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 2.5"/></svg>
+                    <span>Exercise history</span>
+                </a>
+            </div>
         </section>
-        <div class="form-actions" th:if="${workout.editable()}"><button class="button button-secondary" type="submit" name="action" value="SAVE">Save draft</button><button class="button" type="submit" name="action" value="FINISH">Finish workout</button><p class="field-help">Finishing makes the log permanent. Mark every exercise Completed or Skipped first.</p></div>
+
+        <!-- Sticky Bottom Action Bar -->
+        <div class="workout-action-bar" th:if="${workout.editable()}">
+            <div class="action-bar-inner">
+                <div class="action-bar-info">
+                    <span class="action-progress-pill"><span id="action-completed-label">0 of 5</span> Completed</span>
+                    <span class="action-volume-pill"><span id="action-total-volume">0</span> kg Volume</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="button button-secondary" type="submit" name="action" value="SAVE">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" width="16" height="16" aria-hidden="true"><path d="M4 4h10l3 3v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M7 4v4h6V4M7 17v-5h6v5"/></svg>
+                        <span>Save draft</span>
+                    </button>
+                    <button class="button button-finish" type="submit" name="action" value="FINISH">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16" aria-hidden="true"><path d="m4.5 10 3.5 3.5 7.5-7.5"/></svg>
+                        <span>Finish workout</span>
+                    </button>
+                </div>
+            </div>
+            <p class="field-help action-bar-help">Finishing makes the log permanent. Mark every exercise Completed or Skipped first.</p>
+        </div>
     </form>
-    <form class="cancel-workout" th:if="${workout.editable()}" th:action="@{/workouts/{id}/cancel(id=${workout.id})}" method="post"><input type="hidden" name="version" th:value="${workout.version}"><button class="text-button" type="submit">Cancel this draft</button><p class="field-help">Keeps the draft for reference and excludes it from progression. Unsaved values are discarded.</p></form>
+
+    <!-- Cancel Draft Form -->
+    <form class="cancel-workout" th:if="${workout.editable()}" th:action="@{/workouts/{id}/cancel(id=${workout.id})}" method="post">
+        <input type="hidden" name="version" th:value="${workout.version}">
+        <button class="text-button cancel-draft-btn" type="submit">Cancel this draft</button>
+        <p class="field-help">Keeps the draft for reference and excludes it from progression. Unsaved values are discarded.</p>
+    </form>
+
     <p class="feedback" th:unless="${workout.editable()}">This log is closed. Start your next session from your current plan to review fresh load suggestions.</p>
-</main><footer th:replace="~{fragments/layout :: footer}"></footer></div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
+
 <script th:src="@{/js/workout-log.js}" defer></script>
-</body></html>
+</body>
+</html>

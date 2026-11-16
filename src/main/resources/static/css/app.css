@@ -1458,7 +1458,7 @@ details[open] > summary .chevron-icon {
     color: var(--accent);
     margin-bottom: .35rem;
 }
-.exercise-name {
+.workout-card .exercise-name {
     margin: 0 0 .5rem;
     font-size: clamp(1.8rem, 3vw, 2.5rem);
     line-height: 1.1;

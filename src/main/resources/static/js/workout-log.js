@@ -40,6 +40,7 @@
             gain2.connect(ctx.destination);
             osc2.start(now + 0.12);
             osc2.stop(now + 0.55);
+            osc2.addEventListener('ended', () => { void ctx.close(); }, { once: true });
         } catch (e) {
             // Audio context not allowed before user gesture
         }
@@ -90,7 +91,7 @@
 
     // Initialize Stepper Inputs (+ / -)
     function initSteppers(container) {
-        const rows = container.querySelectorAll ? container.querySelectorAll('.card-set-row') : [container];
+        const rows = container.matches?.('.card-set-row') ? [container] : container.querySelectorAll('.card-set-row');
         rows.forEach(row => {
             const fieldset = row.closest('.work-sets');
             const stepKg = parseFloat((fieldset && fieldset.dataset.loadStep) || '2.5');
@@ -122,6 +123,7 @@
 
             // Reps Steppers
             const repsInput = row.querySelector('.col-reps input');
+            const rirInput = row.querySelector('.col-rir input');
             const repsDown = row.querySelector('.col-reps .stepper-down');
             const repsUp = row.querySelector('.col-reps .stepper-up');
 
@@ -167,28 +169,17 @@
                 checkBtn.dataset.initialized = 'true';
                 checkBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    const hasWeight = weightInput && weightInput.value.trim() !== '';
-                    const hasReps = repsInput && repsInput.value.trim() !== '';
-
-                    // If empty, auto-fill sensible targets
-                    if (!hasWeight && fieldset && fieldset.dataset.targetLoad) {
-                        weightInput.value = parseFloat(fieldset.dataset.targetLoad).toFixed(2);
-                    } else if (!hasWeight && weightInput) {
-                        // Look at previous row
-                        const prevRow = row.previousElementSibling;
-                        const prevWeight = prevRow?.querySelector('.col-weight input')?.value;
-                        if (prevWeight) weightInput.value = prevWeight;
+                    const missing = [weightInput, repsInput].find(input => input?.value === '');
+                    if (missing) {
+                        missing.focus();
+                        return;
+                    }
+                    const invalid = [weightInput, repsInput, rirInput].find(input => input && !input.validity.valid);
+                    if (invalid) {
+                        invalid.reportValidity();
+                        return;
                     }
 
-                    if (!hasReps && fieldset && fieldset.dataset.repMin) {
-                        repsInput.value = fieldset.dataset.repMin;
-                    } else if (!hasReps && repsInput) {
-                        const prevRow = row.previousElementSibling;
-                        const prevReps = prevRow?.querySelector('.col-reps input')?.value;
-                        if (prevReps) repsInput.value = prevReps;
-                    }
-
-                    row.classList.toggle('is-completed');
                     recalculateRowState(row);
                     recalculateHUD();
 
@@ -213,7 +204,6 @@
                     e.preventDefault();
                     if (weightInput) weightInput.value = '';
                     if (repsInput) repsInput.value = '';
-                    const rirInput = row.querySelector('.col-rir input');
                     if (rirInput) rirInput.value = '';
                     row.classList.remove('is-completed');
                     recalculateRowState(row);
@@ -222,7 +212,7 @@
             }
 
             // Listen on inputs
-            [weightInput, repsInput].forEach(inp => {
+            [weightInput, repsInput, rirInput].forEach(inp => {
                 if (inp) {
                     inp.addEventListener('input', () => {
                         recalculateRowState(row);
@@ -239,19 +229,15 @@
     function recalculateRowState(row) {
         const weightInput = row.querySelector('.col-weight input');
         const repsInput = row.querySelector('.col-reps input');
-        const isFilled = weightInput && weightInput.value.trim() !== '' && repsInput && repsInput.value.trim() !== '';
-        row.classList.toggle('is-completed', isFilled);
+        const isFilled = [weightInput, repsInput].every(input => input && input.value !== '' && input.validity.valid);
+        row.classList.toggle('is-completed', isFilled && (row.querySelector('.col-rir input')?.validity.valid ?? true));
     }
 
     function checkAutoCardCompletion(card) {
         const fieldset = card.querySelector('.work-sets');
         if (!fieldset) return;
         const rows = Array.from(fieldset.querySelectorAll('.card-set-row'));
-        const allFilled = rows.length > 0 && rows.every(r => {
-            const w = r.querySelector('.col-weight input')?.value.trim();
-            const reps = r.querySelector('.col-reps input')?.value.trim();
-            return w !== '' && reps !== '';
-        });
+        const allFilled = rows.length > 0 && rows.every(row => row.classList.contains('is-completed'));
 
         if (allFilled) {
             const statusSelect = card.querySelector('.status-native-select');
@@ -269,6 +255,7 @@
             let remaining = defaultSec;
             let timerId = null;
             let isRunning = false;
+            let deadline = 0;
 
             const clockEl = bar.querySelector('.timer-clock');
             const fillEl = bar.querySelector('.timer-progress-fill');
@@ -297,6 +284,8 @@
 
             const startTimer = () => {
                 if (remaining <= 0) remaining = defaultSec;
+                if (remaining <= 0 || isRunning) return;
+                deadline = Date.now() + remaining * 1000;
                 stopTimer();
                 isRunning = true;
                 bar.classList.add('is-timer-running');
@@ -305,7 +294,7 @@
                 updateDisplay();
 
                 timerId = setInterval(() => {
-                    remaining--;
+                    remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
                     if (remaining <= 0) {
                         remaining = 0;
                         stopTimer();
@@ -318,7 +307,7 @@
                     } else {
                         updateDisplay();
                     }
-                }, 1000);
+                }, 250);
             };
 
             bar.startTimer = startTimer;
@@ -328,7 +317,9 @@
                 startBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     if (isRunning) {
+                        remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
                         stopTimer();
+                        updateDisplay();
                     } else {
                         startTimer();
                     }
@@ -340,6 +331,10 @@
                     e.preventDefault();
                     const adjustSec = parseInt(adjustBtn.getAttribute('data-adjust') || '30', 10);
                     remaining += adjustSec;
+                    if (isRunning) {
+                        deadline += adjustSec * 1000;
+                        remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+                    }
                     updateDisplay();
                 });
             }
@@ -396,6 +391,10 @@
                     input.value = '';
                 });
 
+                copy.querySelectorAll('label[for]').forEach(label => {
+                    label.htmlFor = label.htmlFor.replace(/-set-\d+-/, `-set-${index}-`);
+                });
+
                 // Clear initialization markers on cloned buttons
                 copy.querySelectorAll('[data-initialized]').forEach(el => delete el.dataset.initialized);
 
@@ -420,18 +419,11 @@
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetKg = parseFloat(fieldset.dataset.targetLoad).toFixed(2);
-                const repMin = fieldset.dataset.repMin || '8';
-
                 fieldset.querySelectorAll('.card-set-row').forEach(row => {
                     const weightInput = row.querySelector('.col-weight input');
-                    const repsInput = row.querySelector('.col-reps input');
                     if (weightInput && !weightInput.value.trim()) {
                         weightInput.value = targetKg;
                         weightInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    if (repsInput && !repsInput.value.trim()) {
-                        repsInput.value = repMin;
-                        repsInput.dispatchEvent(new Event('input', { bubbles: true }));
                     }
                 });
                 recalculateHUD();

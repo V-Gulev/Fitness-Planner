@@ -160,7 +160,7 @@
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
 
-<script th:src="@{/js/plan-editor.js(v='2.5')}" defer></script>
+<script th:src="@{/js/plan-editor.js(v='2.6')}" defer></script>
 
 <div th:remove="all">
 <fieldset class="editor-row training-panel" data-exercise-row th:fragment="row(weekday,item)">
@@ -193,35 +193,35 @@
             </div>
         </label>
         <div class="editor-prescription">
-            <div class="field pres-field">
-                <label th:for="${'sets-' + weekday}">Sets</label>
+            <div class="field pres-field" th:with="fieldId=${#ids.seq('edit-sets-')}">
+                <label th:for="${fieldId}">Sets</label>
                 <div class="stepper-input">
                     <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease sets">−</button>
-                    <input type="number" min="2" max="4" step="1" required th:name="'sets-' + ${weekday}" th:value="${item == null ? 3 : item.sets}">
+                    <input type="number" min="2" max="4" step="1" required th:id="${fieldId}" th:name="'sets-' + ${weekday}" th:value="${item == null ? 3 : item.sets}">
                     <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase sets">+</button>
                 </div>
             </div>
-            <div class="field pres-field">
-                <label th:for="${'min-' + weekday}">Min reps</label>
+            <div class="field pres-field" th:with="fieldId=${#ids.seq('edit-min-')}">
+                <label th:for="${fieldId}">Min reps</label>
                 <div class="stepper-input">
                     <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease min reps">−</button>
-                    <input type="number" min="1" max="50" step="1" required th:name="'min-' + ${weekday}" th:value="${item == null ? 8 : item.repMin}">
+                    <input type="number" min="1" max="50" step="1" required th:id="${fieldId}" th:name="'min-' + ${weekday}" th:value="${item == null ? 8 : item.repMin}">
                     <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase min reps">+</button>
                 </div>
             </div>
-            <div class="field pres-field">
-                <label th:for="${'max-' + weekday}">Max reps</label>
+            <div class="field pres-field" th:with="fieldId=${#ids.seq('edit-max-')}">
+                <label th:for="${fieldId}">Max reps</label>
                 <div class="stepper-input">
                     <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease max reps">−</button>
-                    <input type="number" min="1" max="50" step="1" required th:name="'max-' + ${weekday}" th:value="${item == null ? 12 : item.repMax}">
+                    <input type="number" min="1" max="50" step="1" required th:id="${fieldId}" th:name="'max-' + ${weekday}" th:value="${item == null ? 12 : item.repMax}">
                     <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase max reps">+</button>
                 </div>
             </div>
-            <div class="field pres-field">
-                <label th:for="${'rest-' + weekday}">Rest (s)</label>
+            <div class="field pres-field" th:with="fieldId=${#ids.seq('edit-rest-')}">
+                <label th:for="${fieldId}">Rest (s)</label>
                 <div class="stepper-input">
                     <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease rest">−</button>
-                    <input type="number" min="0" max="600" step="15" required th:name="'rest-' + ${weekday}" th:value="${item == null ? 90 : item.restSeconds}">
+                    <input type="number" min="0" max="600" step="1" data-stepper-step="15" required th:id="${fieldId}" th:name="'rest-' + ${weekday}" th:value="${item == null ? 90 : item.restSeconds}">
                     <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase rest">+</button>
                 </div>
             </div>

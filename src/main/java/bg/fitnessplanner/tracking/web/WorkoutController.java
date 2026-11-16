@@ -4,7 +4,9 @@ import bg.fitnessplanner.account.application.AccountPrincipal;
 import bg.fitnessplanner.planning.application.PlanQueryService;
 import bg.fitnessplanner.tracking.application.*;
 import jakarta.validation.Valid;
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -38,6 +40,10 @@ public class WorkoutController {
         binder.setAllowedFields("version", "performances[*].id", "performances[*].status",
                 "performances[*].sets[*].reps", "performances[*].sets[*].weightKg", "performances[*].sets[*].rir");
     }
+    @ExceptionHandler(InvalidPropertyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    void rejectInvalidFormProperty() { }
+
     @GetMapping("/workouts")
     String history(@AuthenticationPrincipal AccountPrincipal account,
                    @RequestParam(required = false) String month,

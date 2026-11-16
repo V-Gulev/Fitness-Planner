@@ -12,6 +12,8 @@ import bg.fitnessplanner.profile.application.ProfileService;
 import bg.fitnessplanner.profile.application.ProfileSnapshot;
 import bg.fitnessplanner.profile.persistence.FitnessProfileRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import java.util.*;
 
 @Service
 public class PlanQueryService {
+    private static final Logger LOG = LoggerFactory.getLogger(PlanQueryService.class);
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm", Locale.ENGLISH)
             .withZone(ZoneId.of("Europe/Sofia"));
     private final WorkoutPlanRepository plans;
@@ -52,16 +55,13 @@ public class PlanQueryService {
             Map<Long, ExerciseSnapshot> catalogMap = null;
             ProfileSnapshot profileSnapshot = null;
             try {
-                if (plan.getCatalogSnapshot() != null) {
+                if (plan.getCatalogSnapshot() != null && plan.getInputSnapshot() != null) {
                     var catalogList = codec.read(plan.getCatalogSnapshot(), new TypeReference<List<ExerciseSnapshot>>() { });
                     catalogMap = PlanningRules.byId(catalogList);
-                }
-                if (plan.getInputSnapshot() != null) {
                     profileSnapshot = codec.read(plan.getInputSnapshot(), ProfileSnapshot.class);
                 }
-            } catch (Exception ignored) { }
-            if (profileSnapshot == null) {
-                profileSnapshot = snapshot;
+            } catch (IllegalStateException invalidSnapshot) {
+                LOG.warn("Could not read evidence for legacy explanations in plan {}", plan.getId(), invalidSnapshot);
             }
             final Map<Long, ExerciseSnapshot> finalCatalog = catalogMap;
             final ProfileSnapshot finalProfile = profileSnapshot;
@@ -78,7 +78,7 @@ public class PlanQueryService {
                             day.getDayType().getLabel(), (day.getEstimatedSeconds() + 59) / 60,
                             day.getExercises().stream().map(e -> {
                                 String explanation = e.getExplanation();
-                                if (ExerciseExplainer.isLegacyExplanation(explanation) && finalCatalog != null) {
+                                if (ExerciseExplainer.isLegacyExplanation(explanation) && finalCatalog != null && finalProfile != null) {
                                     ExerciseSnapshot meta = finalCatalog.get(e.getExerciseId());
                                     if (meta != null) {
                                         explanation = ExerciseExplainer.explain(meta, finalProfile, e.getSets(),

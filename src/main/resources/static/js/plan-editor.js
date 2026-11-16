@@ -5,6 +5,7 @@ if (planEditor) {
     const feedback = planEditor.querySelector('[data-edit-feedback]');
     const save = planEditor.querySelector('button[value="save"]');
     const actionsBar = planEditor.querySelector('.editor-actions');
+    let addedRowCount = 0;
 
     function invalidatePreview() {
         if (save) {
@@ -36,7 +37,7 @@ if (planEditor) {
             const upBtn = stepper.querySelector('.stepper-up');
             if (!input) return;
 
-            const step = parseFloat(input.step) || 1;
+            const step = parseFloat(input.dataset.stepperStep || input.step) || 1;
             const min = input.min !== '' ? parseFloat(input.min) : -Infinity;
             const max = input.max !== '' ? parseFloat(input.max) : Infinity;
 
@@ -93,6 +94,9 @@ if (planEditor) {
 
             add.addEventListener('click', () => {
                 const fragment = template.content.cloneNode(true);
+                const suffix = '-added-' + ++addedRowCount;
+                fragment.querySelectorAll('input[id]').forEach(input => { input.id += suffix; });
+                fragment.querySelectorAll('label[for]').forEach(label => { label.htmlFor += suffix; });
                 rows.append(fragment);
                 const addedElement = rows.lastElementChild;
                 if (addedElement) {
@@ -111,12 +115,13 @@ if (planEditor) {
                 if (!row) return;
 
                 const next = row.nextElementSibling || row.previousElementSibling;
+                row.disabled = true;
+                invalidatePreview();
                 row.classList.add('row-anim-leave');
                 setTimeout(() => {
                     row.remove();
                     refreshRows();
                     (next?.querySelector('select') || add).focus();
-                    invalidatePreview();
                 }, 160);
             });
         }

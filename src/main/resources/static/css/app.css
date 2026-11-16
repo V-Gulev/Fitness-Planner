@@ -1187,7 +1187,8 @@ details[open] > summary .chevron-icon {
    ========================================================================== */
 
 /* Breadcrumb Navigation */
-.workout-breadcrumb {
+.workout-breadcrumb,
+.plan-breadcrumb {
     display: flex;
     align-items: center;
     gap: .5rem;
@@ -1195,7 +1196,8 @@ details[open] > summary .chevron-icon {
     color: var(--muted);
     margin-bottom: 1.25rem;
 }
-.workout-breadcrumb a {
+.workout-breadcrumb a,
+.plan-breadcrumb a {
     color: var(--muted);
     text-decoration: none;
     display: inline-flex;
@@ -1203,7 +1205,8 @@ details[open] > summary .chevron-icon {
     gap: .35rem;
     transition: color .15s ease;
 }
-.workout-breadcrumb a:hover { color: var(--accent); }
+.workout-breadcrumb a:hover,
+.plan-breadcrumb a:hover { color: var(--accent); }
 .breadcrumb-sep { color: var(--line); }
 .breadcrumb-current { color: var(--text); font-weight: 500; }
 
@@ -2297,6 +2300,44 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     margin: 0 0 .5rem;
 }
 
+/* ==========================================================================
+   PLAN EDITOR & IMPACT PREVIEW (ATHLETIC REDESIGN)
+   ========================================================================== */
+
+/* Hero & Header Badges */
+.edit-badge-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+    margin-bottom: 1rem;
+}
+.plan-capacity-badge {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--line);
+    padding: .2rem .65rem;
+    border-radius: var(--radius-pill);
+}
+.edit-hero-title {
+    font-size: clamp(2rem, 4.5vw, 3.25rem);
+    line-height: 1.08;
+    margin: 0 0 .75rem;
+    letter-spacing: -.02em;
+}
+.edit-hero-title span {
+    color: var(--accent);
+}
+.edit-hero-lead {
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    color: var(--muted);
+    max-width: 48rem;
+    margin: 0 0 1.5rem;
+    line-height: 1.5;
+}
+
 /* Sticky / Elevated Action Control Bar */
 .editor-actions {
     position: sticky;
@@ -2322,6 +2363,7 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     display: flex;
     align-items: center;
     gap: .65rem;
+    flex-wrap: wrap;
 }
 .editor-status-dot {
     width: 8px;
@@ -2340,12 +2382,35 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     color: var(--text);
     font-weight: 500;
 }
+.editor-total-badge {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(197, 231, 119, 0.1);
+    border: 1px solid rgba(197, 231, 119, 0.25);
+    padding: .2rem .65rem;
+    border-radius: var(--radius-pill);
+    letter-spacing: .02em;
+}
 
 .editor-buttons-group {
     display: flex;
     align-items: center;
     gap: .75rem;
     flex-wrap: wrap;
+}
+.editor-cancel-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: .88rem;
+    font-weight: 500;
+    padding: .5rem .85rem;
+    border-radius: var(--radius-pill);
+    transition: color 150ms ease, background 150ms ease;
+}
+.editor-cancel-link:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .editor-btn-preview {
@@ -2390,60 +2455,46 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
 .editor-btn-save:active { transform: translateY(1px); }
 .editor-actions .button:disabled { opacity: .5; cursor: not-allowed; }
 
-/* Day Quick-Jump Navigation in Editor */
-.editor-day-jump-nav {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-    padding: .65rem 1.15rem;
-    background: rgba(0, 0, 0, 0.22);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-input);
-}
-.jump-nav-label {
-    font-size: .8rem;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .04em;
-}
-.jump-nav-pills {
-    display: flex;
-    align-items: center;
-    gap: .45rem;
-    flex-wrap: wrap;
-}
-.day-jump-pill {
+/* Day Filter Toolbar in Editor */
+.editor-days-toolbar {
     display: inline-flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: .4rem;
-    padding: .25rem .75rem;
-    font-size: .82rem;
-    font-weight: 600;
-    color: var(--muted);
+    gap: .35rem;
+    padding: .35rem;
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-pill);
-    cursor: pointer;
-    transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+    margin-bottom: 1.5rem;
 }
-.day-jump-pill:hover {
-    color: var(--text);
-    border-color: var(--accent);
-    background: rgba(197, 231, 119, 0.08);
+.editor-days-toolbar .day-filter-btn {
+    padding: .4rem .9rem;
 }
-.jump-pill-type {
+.editor-days-toolbar .day-tab-num {
     font-size: .72rem;
-    opacity: 0.8;
+    font-weight: 700;
+    padding: .12rem .45rem;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: var(--radius-pill);
+}
+.editor-days-toolbar .day-tab-pill {
+    font-size: .72rem;
+    opacity: 0.85;
+}
+.editor-days-toolbar .day-filter-btn.is-active .day-tab-num {
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--background);
+}
+.editor-days-toolbar .day-filter-btn.is-active .day-tab-pill {
+    color: rgba(23, 26, 23, 0.9);
+    font-weight: 600;
 }
 
 /* Day Accordions in Editor */
 .editor-days-container {
     display: flex;
     flex-direction: column;
-    gap: .65rem;
+    gap: .75rem;
 }
 
 .editor-day {
@@ -2453,6 +2504,9 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     background: var(--surface);
     overflow: hidden;
     transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.editor-day.is-card-hidden {
+    display: none !important;
 }
 .editor-day[open] {
     border-color: rgba(197, 231, 119, 0.3);
@@ -2482,6 +2536,19 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     margin: 0;
     line-height: 1;
 }
+.editor-header-split-type {
+    display: inline-flex;
+    align-items: center;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: rgba(197, 231, 119, 0.1);
+    border: 1px solid rgba(197, 231, 119, 0.25);
+    padding: .18rem .6rem;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
 
 .editor-day-summary-right {
     display: flex;
@@ -2496,6 +2563,16 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     border: 1px solid rgba(197, 231, 119, 0.25);
     padding: .2rem .55rem;
     border-radius: var(--radius-pill);
+}
+.accordion-chevron {
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    flex: none;
+}
+.editor-day[open] .accordion-chevron {
+    transform: rotate(180deg);
 }
 
 .editor-day-body {
@@ -2561,10 +2638,25 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     align-items: center;
     margin-bottom: .85rem;
 }
+.editor-row-badge-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.editor-step-tag {
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(197, 231, 119, 0.12);
+    border: 1px solid rgba(197, 231, 119, 0.3);
+    padding: .15rem .45rem;
+    border-radius: 4px;
+    letter-spacing: .06em;
+}
 .editor-row-legend {
     font-size: .88rem;
     font-weight: 600;
-    color: var(--accent);
+    color: var(--text);
     margin: 0;
     padding: 0;
 }
@@ -2603,16 +2695,18 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     gap: .75rem;
 }
 .pres-field { margin: 0; }
-.pres-field span { font-size: .8rem; color: var(--muted); font-weight: 500; display: block; margin-bottom: .3rem; }
-.pres-field input {
-    text-align: center;
-    font-variant-numeric: tabular-nums;
+.pres-field label {
+    font-size: .76rem;
+    color: var(--muted);
     font-weight: 600;
-    background: #252b23;
+    display: block;
+    margin-bottom: .35rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
 }
-.pres-field input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(197, 231, 119, 0.16);
+.pres-field .stepper-btn {
+    width: 1.85rem;
+    font-size: 1.05rem;
 }
 
 .button-add-exercise {
@@ -2677,12 +2771,228 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     50% { box-shadow: 0 6px 20px -2px rgba(197, 231, 119, 0.65); }
 }
 
-.impact-day-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-.impact-days details { border-bottom: 1px solid var(--line); }
-.impact-days { margin-bottom: 1rem; }
-.weekly-impact { margin-block: 1rem; }
-.impact-positive { color: #b9ed9e; font-weight: 600; }
-.impact-negative { color: #ffb4a9; font-weight: 600; }
+/* Impact Preview Styling */
+.weekly-impact {
+    margin-block: 1.5rem 2rem;
+}
+.impact-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+.impact-badge-tag {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(197, 231, 119, 0.12);
+    border: 1px solid rgba(197, 231, 119, 0.3);
+    padding: .2rem .55rem;
+    border-radius: 4px;
+    letter-spacing: .06em;
+    display: inline-block;
+    margin-bottom: .4rem;
+}
+.impact-main-heading {
+    font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+    margin: 0;
+}
+.impact-status-chip {
+    font-size: .8rem;
+    font-weight: 600;
+    padding: .35rem .85rem;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+}
+.impact-status-chip.is-modified {
+    background: rgba(197, 231, 119, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(197, 231, 119, 0.35);
+}
+.impact-status-chip.is-identical {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    border: 1px solid var(--line);
+}
+.impact-lead-copy {
+    font-size: .92rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    max-width: 50rem;
+    line-height: 1.5;
+}
+.impact-neutral-note {
+    font-size: .92rem;
+    color: var(--muted);
+    margin-block: .75rem;
+}
+
+.impact-days {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.impact-day-card {
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-input);
+    overflow: hidden;
+    transition: border-color .15s ease;
+}
+.impact-day-card[open] {
+    border-color: rgba(197, 231, 119, 0.3);
+}
+.impact-day-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .85rem 1.25rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+    font-size: .95rem;
+    background: rgba(255, 255, 255, 0.02);
+    transition: background 150ms ease;
+}
+.impact-day-summary::-webkit-details-marker { display: none; }
+.impact-day-summary:hover { background: rgba(255, 255, 255, 0.05); }
+.impact-day-label {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.impact-calendar-icon { width: 16px; height: 16px; color: var(--accent); flex: none; }
+.impact-day-card .chevron-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--muted);
+    transition: transform 200ms ease;
+    flex: none;
+}
+.impact-day-card[open] .chevron-icon { transform: rotate(180deg); }
+.impact-day-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 1rem 1.25rem 1.25rem;
+    border-top: 1px solid var(--line);
+}
+.impact-column {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .9rem 1.1rem;
+}
+.impact-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: .75rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid rgba(66, 73, 60, 0.5);
+}
+.impact-col-header h3 {
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin: 0;
+    color: var(--muted);
+}
+.impact-meta-badge {
+    font-size: .75rem;
+    color: var(--muted);
+    background: rgba(0, 0, 0, 0.25);
+    padding: .2rem .5rem;
+    border-radius: var(--radius-pill);
+}
+.impact-meta-badge.badge-accent {
+    color: var(--accent);
+    background: rgba(197, 231, 119, 0.1);
+    border: 1px solid rgba(197, 231, 119, 0.25);
+}
+.impact-exercise-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+}
+.impact-exercise-list li {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    font-size: .88rem;
+    color: var(--text);
+}
+.impact-diff-marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: .82rem;
+    font-weight: 700;
+    line-height: 1;
+    flex: none;
+}
+.diff-removed {
+    background: rgba(255, 133, 119, 0.18);
+    color: #ff8577;
+}
+.diff-added {
+    background: rgba(197, 231, 119, 0.2);
+    color: var(--accent);
+}
+.impact-table-wrap {
+    margin-top: 1.5rem;
+}
+.impact-comparison-table th,
+.impact-comparison-table td {
+    vertical-align: middle;
+}
+.impact-comparison-table .cell-numeric {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.impact-comparison-table .cell-after-sets {
+    font-weight: 600;
+    color: var(--text);
+}
+.impact-comparison-table .cell-impact-badge {
+    text-align: right;
+}
+.impact-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .78rem;
+    font-weight: 600;
+    padding: .25rem .65rem;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+}
+.impact-closer {
+    background: rgba(197, 231, 119, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(197, 231, 119, 0.35);
+}
+.impact-farther {
+    background: rgba(255, 133, 119, 0.15);
+    color: #ff8577;
+    border: 1px solid rgba(255, 133, 119, 0.35);
+}
+.impact-same {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--muted);
+    border: 1px solid var(--line);
+}
+
 @media (max-width: 760px) {
     .editor-row-content { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
 }

@@ -4,21 +4,36 @@
 <body>
 <div class="page-shell">
 <header th:replace="~{fragments/layout :: header}"></header>
+
 <main id="main" class="workspace edit-workspace" tabindex="-1">
-    <div class="edit-nav-row">
-        <a th:href="@{/plans/{id}(id=${planId})}" class="plan-back-link">
-            <svg class="back-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M10 13 5 8l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Back to saved plan</span>
+    <!-- Breadcrumb Navigation -->
+    <nav class="plan-breadcrumb" aria-label="Breadcrumb">
+        <a th:href="@{/plans}" class="breadcrumb-link">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" width="16" height="16" aria-hidden="true"><path d="M12.5 15 7.5 10l5-5"/></svg>
+            <span>All plans</span>
         </a>
-    </div>
+        <span class="breadcrumb-sep">/</span>
+        <a th:href="@{/plans/{id}(id=${planId})}" class="breadcrumb-link" th:text="'Plan #' + ${planId}">Plan #1</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Edit training week</span>
+    </nav>
 
+    <!-- Page Intro / Hero Header -->
     <div class="page-intro edit-intro">
-        <h1>Edit your<br><span>training week.</span></h1>
-        <p class="lead">Change the split, swap or add exercises, and adjust sets, reps, and rest on your saved training days. Preview the impact before saving a new version.</p>
+        <div class="edit-badge-strip">
+            <span class="plan-status-pill status-active">
+                <span class="auth-badge-dot" aria-hidden="true"></span>
+                Editing Active Plan
+            </span>
+            <span class="plan-id-badge" th:text="'Plan #' + ${planId}">Plan #1</span>
+            <span class="plan-days-badge" th:text="${draft.days.size()} + ' Training Days'">5 Training Days</span>
+            <span class="plan-capacity-badge">Max 8 exercises / day</span>
+        </div>
+        <h1 class="edit-hero-title">Edit your<br><span>training week.</span></h1>
+        <p class="lead edit-hero-lead">Customize workout splits, swap movements, and tailor sets, reps, and rest times. Preview volume impact before publishing.</p>
     </div>
 
+    <!-- Error Alerts -->
     <div th:if="${formProblem}" class="feedback feedback-error" role="alert">
         <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
@@ -45,13 +60,15 @@
         <input type="hidden" name="profileVersion" th:value="${editor.input.profile.version}">
         <input type="hidden" name="previewToken" th:value="${review == null ? '' : review.token}">
 
-        <!-- Sticky / Elevated Action Control Bar -->
+        <!-- Sticky Floating HUD Action Bar -->
         <div class="editor-actions training-panel">
             <div class="editor-status-wrap">
                 <span class="editor-status-dot" aria-hidden="true"></span>
                 <span data-edit-feedback role="status" class="editor-status-text">Ready to preview changes</span>
+                <span class="editor-total-badge" data-total-exercises>0 movements planned</span>
             </div>
             <div class="editor-buttons-group">
+                <a th:href="@{/plans/{id}(id=${planId})}" class="text-button editor-cancel-link">Discard</a>
                 <button class="button button-secondary editor-btn-preview" type="submit" name="action" value="preview">
                     <svg class="btn-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                         <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6"/>
@@ -59,44 +76,52 @@
                     </svg>
                     <span>Preview weekly changes</span>
                 </button>
-                <button class="button button-save editor-btn-save"
+                <button class="button button-finish editor-btn-save"
                         th:if="${review != null and review.problems.isEmpty() and review.impact.changed()}"
                         type="submit" name="action" value="save">
                     <svg class="btn-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                        <path d="m3 8.5 3.5 3.5 6.5-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="m3 8.5 3.5 3.5 6.5-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <span>Save edited plan</span>
                 </button>
             </div>
         </div>
 
-        <div th:if="${review != null and review.problems.isEmpty()}">
+        <!-- Weekly Impact Review Section (shown on preview) -->
+        <div th:if="${review != null and review.problems.isEmpty()}" class="impact-section-wrapper">
             <section th:replace="~{planning/impact :: comparison(${review.impact})}"></section>
         </div>
 
-        <!-- Day Quick-Jump Navigation -->
-        <div class="editor-day-jump-nav" th:if="${draft.days.size() > 1}">
-            <span class="jump-nav-label">Jump to day:</span>
-            <div class="jump-nav-pills">
-                <button type="button" th:each="day : ${draft.days}" class="day-jump-pill"
-                        th:attr="data-jump-day=${day.weekday}">
+        <!-- Interactive Day Filter Tabs (matching /plans toolbar) -->
+        <div class="plan-days-toolbar editor-days-toolbar" th:if="${draft.days.size() > 1}">
+            <div class="plan-days-filter" role="tablist" aria-label="Filter workout days">
+                <button type="button" class="day-filter-btn is-active" data-day-filter="all" role="tab" aria-selected="true">
+                    <span>All days</span>
+                    <span class="day-filter-count" th:text="${draft.days.size()}">5</span>
+                </button>
+                <button type="button" th:each="day : ${draft.days}" class="day-filter-btn"
+                        th:attr="data-day-filter=${day.weekday}, data-jump-day=${day.weekday}"
+                        role="tab" aria-selected="false">
                     <span th:text="${T(java.time.DayOfWeek).of(day.weekday).getDisplayName(T(java.time.format.TextStyle).SHORT, T(java.util.Locale).ENGLISH)}"></span>
-                    <span class="jump-pill-type" th:text="${day.type.label}"></span>
+                    <span class="day-filter-type" th:id="'tab-type-' + ${day.weekday}" th:text="${day.type.label}"></span>
                 </button>
             </div>
         </div>
 
-        <!-- Days Accordions -->
+        <!-- Days Container -->
         <div class="editor-days-container">
-            <details class="editor-day training-panel" th:each="day, i : ${draft.days}" th:open="${i.first or review != null}">
+            <details class="editor-day training-panel" th:each="day, i : ${draft.days}"
+                     th:id="'editor-day-' + ${day.weekday}"
+                     th:attr="data-day-weekday=${day.weekday}"
+                     th:open="${i.first or review != null}">
                 <summary class="editor-day-summary">
                     <div class="editor-day-summary-left">
-                        <span class="day-number-badge" th:text="'Day ' + ${day.weekday}"></span>
-                        <h2 class="editor-day-heading" th:text="${T(java.time.DayOfWeek).of(day.weekday).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).ENGLISH)}"></h2>
-                        <span class="plan-day-type" th:text="${day.type.label}"></span>
+                        <span class="day-number-badge" th:text="'Day ' + ${i.count}">Day 1</span>
+                        <h2 class="editor-day-heading" th:text="${T(java.time.DayOfWeek).of(day.weekday).getDisplayName(T(java.time.format.TextStyle).FULL, T(java.util.Locale).ENGLISH)}">Monday</h2>
+                        <span class="plan-day-type editor-header-split-type" th:id="'header-type-' + ${day.weekday}" th:text="${day.type.label}">Upper body</span>
                     </div>
                     <div class="editor-day-summary-right">
-                        <span class="editor-day-count-badge" data-day-count th:text="${day.exercises.size()} + ' / 8 exercises'"></span>
+                        <span class="editor-day-count-badge" data-day-count th:text="${day.exercises.size()} + ' / 8 exercises'">4 / 8 exercises</span>
                         <svg class="chevron-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                             <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -105,9 +130,9 @@
                 <div class="editor-day-body">
                     <div class="editor-focus-picker">
                         <label class="field editor-type">
-                            <span>Day focus / split type</span>
+                            <span class="picker-label">Day focus / split type</span>
                             <div class="select-wrapper">
-                                <select th:name="'type-' + ${day.weekday}">
+                                <select th:name="'type-' + ${day.weekday}" th:attr="data-type-weekday=${day.weekday}" class="day-focus-select">
                                     <option th:each="type : ${dayTypes}" th:value="${type.name()}" th:text="${type.label}" th:selected="${type == day.type}"></option>
                                 </select>
                                 <svg class="select-chevron" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -124,21 +149,27 @@
                         <svg class="add-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                             <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
-                        <span>Add exercise to this workout</span>
+                        <span>Add movement to this workout</span>
                     </button>
                 </div>
             </details>
         </div>
     </form>
 </main>
+
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </div>
-<script th:src="@{/js/plan-editor.js}" defer></script>
+
+<script th:src="@{/js/plan-editor.js(v='2.5')}" defer></script>
+
 <div th:remove="all">
 <fieldset class="editor-row training-panel" data-exercise-row th:fragment="row(weekday,item)">
     <div class="editor-row-header">
-        <legend class="editor-row-legend">Exercise</legend>
-        <button class="editor-remove-btn text-button" type="button" data-remove-exercise hidden title="Remove exercise" aria-label="Remove exercise">
+        <div class="editor-row-badge-wrap">
+            <span class="editor-step-tag">EXERCISE</span>
+            <legend class="editor-row-legend">Exercise 1</legend>
+        </div>
+        <button class="editor-remove-btn" type="button" data-remove-exercise hidden title="Remove exercise" aria-label="Remove exercise">
             <svg class="remove-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M3 4h10M6 4V2.5h4V4M5 4v9h6V4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -147,9 +178,9 @@
     </div>
     <div class="editor-row-content">
         <label class="field movement-field">
-            <span>Movement</span>
+            <span>Movement selection</span>
             <div class="select-wrapper">
-                <select th:name="'exercise-' + ${weekday}" required>
+                <select th:name="'exercise-' + ${weekday}" required class="exercise-select">
                     <option value="" th:selected="${item == null}">Choose an exercise</option>
                     <option th:if="${item != null and !eligibleIds.contains(item.exerciseId)}"
                             th:value="${item.exerciseId}" selected>Unavailable exercise</option>
@@ -162,24 +193,41 @@
             </div>
         </label>
         <div class="editor-prescription">
-            <label class="field pres-field">
-                <span>Sets</span>
-                <input type="number" min="2" max="4" required th:name="'sets-' + ${weekday}" th:value="${item == null ? 3 : item.sets}">
-            </label>
-            <label class="field pres-field">
-                <span>Min reps</span>
-                <input type="number" min="1" max="50" required th:name="'min-' + ${weekday}" th:value="${item == null ? 8 : item.repMin}">
-            </label>
-            <label class="field pres-field">
-                <span>Max reps</span>
-                <input type="number" min="1" max="50" required th:name="'max-' + ${weekday}" th:value="${item == null ? 12 : item.repMax}">
-            </label>
-            <label class="field pres-field">
-                <span>Rest (s)</span>
-                <input type="number" min="0" max="600" required th:name="'rest-' + ${weekday}" th:value="${item == null ? 90 : item.restSeconds}">
-            </label>
+            <div class="field pres-field">
+                <label th:for="${'sets-' + weekday}">Sets</label>
+                <div class="stepper-input">
+                    <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease sets">−</button>
+                    <input type="number" min="2" max="4" step="1" required th:name="'sets-' + ${weekday}" th:value="${item == null ? 3 : item.sets}">
+                    <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase sets">+</button>
+                </div>
+            </div>
+            <div class="field pres-field">
+                <label th:for="${'min-' + weekday}">Min reps</label>
+                <div class="stepper-input">
+                    <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease min reps">−</button>
+                    <input type="number" min="1" max="50" step="1" required th:name="'min-' + ${weekday}" th:value="${item == null ? 8 : item.repMin}">
+                    <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase min reps">+</button>
+                </div>
+            </div>
+            <div class="field pres-field">
+                <label th:for="${'max-' + weekday}">Max reps</label>
+                <div class="stepper-input">
+                    <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease max reps">−</button>
+                    <input type="number" min="1" max="50" step="1" required th:name="'max-' + ${weekday}" th:value="${item == null ? 12 : item.repMax}">
+                    <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase max reps">+</button>
+                </div>
+            </div>
+            <div class="field pres-field">
+                <label th:for="${'rest-' + weekday}">Rest (s)</label>
+                <div class="stepper-input">
+                    <button type="button" class="stepper-btn stepper-down" tabindex="-1" aria-label="Decrease rest">−</button>
+                    <input type="number" min="0" max="600" step="15" required th:name="'rest-' + ${weekday}" th:value="${item == null ? 90 : item.restSeconds}">
+                    <button type="button" class="stepper-btn stepper-up" tabindex="-1" aria-label="Increase rest">+</button>
+                </div>
+            </div>
         </div>
     </div>
 </fieldset>
 </div>
-</body></html>
+</body>
+</html>

@@ -2,33 +2,95 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>
 <section th:fragment="comparison(impact)" class="training-panel weekly-impact" id="weekly-impact" aria-labelledby="impact-title">
-    <h2 id="impact-title">What changed this week</h2>
-    <p>Green means modeled muscle volume moved closer to its target. Red means it moved farther away. The day details list exercises that changed.</p>
-    <p th:unless="${impact.changed()}">The workout prescription stayed the same.</p>
-    <div class="impact-days">
-        <details th:each="day : ${impact.days}" th:if="${day.changed()}" open>
-            <summary th:text="${day.label()}"></summary>
+    <div class="impact-header-row">
+        <div class="impact-title-group">
+            <span class="impact-badge-tag">VOLUME &amp; STRUCTURE PREVIEW</span>
+            <h2 id="impact-title" class="impact-main-heading">What changed this week</h2>
+        </div>
+        <span class="impact-status-chip" th:classappend="${impact.changed() ? 'is-modified' : 'is-identical'}"
+              th:text="${impact.changed() ? 'Changes Modeled' : 'Identical Prescription'}">Changes Modeled</span>
+    </div>
+    <p class="impact-lead-copy">Green indicates modeled muscle sets moved closer to your profile target. Red indicates volume moved farther away. Review changed workouts and estimated muscle distribution below.</p>
+    <p th:unless="${impact.changed()}" class="impact-neutral-note">The workout prescription stayed the same.</p>
+
+    <div class="impact-days" th:if="${impact.changed()}">
+        <details class="impact-day-card" th:each="day : ${impact.days}" th:if="${day.changed()}" open>
+            <summary class="impact-day-summary">
+                <div class="impact-day-label">
+                    <svg class="impact-calendar-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M2 6h12M5 1.5v3M11 1.5v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                    <span class="impact-day-text" th:text="${day.label()}"></span>
+                </div>
+                <svg class="chevron-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </summary>
             <div class="impact-day-grid">
-                <div><h3>Before</h3><p th:text="${day.beforeType} + ' · ' + ${(day.beforeSeconds + 59) / 60} + ' min'"></p>
-                    <ul><li th:each="exercise : ${day.removedOrUpdated()}" th:text="${exercise}"></li></ul></div>
-                <div><h3>After</h3><p th:text="${day.afterType} + ' · ' + ${(day.afterSeconds + 59) / 60} + ' min'"></p>
-                    <ul><li th:each="exercise : ${day.addedOrUpdated()}" th:text="${exercise}"></li></ul></div>
+                <div class="impact-column impact-col-before">
+                    <div class="impact-col-header">
+                        <h3>Before</h3>
+                        <span class="impact-meta-badge" th:text="${day.beforeType} + ' · ~' + ${(day.beforeSeconds + 59) / 60} + ' min'"></span>
+                    </div>
+                    <ul class="impact-exercise-list">
+                        <li th:each="exercise : ${day.removedOrUpdated()}">
+                            <span class="impact-diff-marker diff-removed" aria-hidden="true">−</span>
+                            <span th:text="${exercise}"></span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="impact-column impact-col-after">
+                    <div class="impact-col-header">
+                        <h3>After</h3>
+                        <span class="impact-meta-badge badge-accent" th:text="${day.afterType} + ' · ~' + ${(day.afterSeconds + 59) / 60} + ' min'"></span>
+                    </div>
+                    <ul class="impact-exercise-list">
+                        <li th:each="exercise : ${day.addedOrUpdated()}">
+                            <span class="impact-diff-marker diff-added" aria-hidden="true">+</span>
+                            <span th:text="${exercise}"></span>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </details>
     </div>
-    <div class="table-scroll plan-table-scroll" role="region" aria-label="Weekly volume comparison" tabindex="0">
-        <table>
+
+    <div class="impact-table-wrap table-scroll plan-table-scroll" role="region" aria-label="Weekly volume comparison" tabindex="0">
+        <table class="plan-modern-table impact-comparison-table">
             <caption class="visually-hidden">Modeled weekly sets and distance from target</caption>
-            <thead><tr><th scope="col">Muscle</th><th scope="col">Target</th><th scope="col">Before</th><th scope="col">After</th><th scope="col">Impact</th></tr></thead>
+            <thead>
+                <tr>
+                    <th scope="col" class="col-muscle">Target Muscle</th>
+                    <th scope="col" class="col-target-sets">Profile Target</th>
+                    <th scope="col" class="col-before-sets">Before</th>
+                    <th scope="col" class="col-after-sets">After</th>
+                    <th scope="col" class="col-impact-result">Target Alignment</th>
+                </tr>
+            </thead>
             <tbody>
-            <tr th:each="muscle : ${impact.muscles}">
-                <th scope="row" th:text="${muscle.name}"></th><td th:text="${muscle.target}"></td>
-                <td th:text="${muscle.before}"></td><td th:text="${muscle.after}"></td>
-                <td th:class="${muscle.impact > 0 ? 'impact-positive' : (muscle.impact < 0 ? 'impact-negative' : '')}"
-                    th:text="${muscle.impact > 0 ? 'Closer' : (muscle.impact < 0 ? 'Farther' : 'Same distance')}"></td>
-            </tr>
+                <tr th:each="muscle : ${impact.muscles}">
+                    <th scope="row" class="cell-muscle-name" th:text="${muscle.name}">Chest</th>
+                    <td class="cell-numeric" th:text="${muscle.target}">12</td>
+                    <td class="cell-numeric" th:text="${muscle.before}">10</td>
+                    <td class="cell-numeric cell-after-sets" th:text="${muscle.after}">12</td>
+                    <td class="cell-impact-badge">
+                        <span th:if="${muscle.impact > 0}" class="impact-pill impact-closer">
+                            <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true"><path d="m3 8.5 3.5 3.5 6.5-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            <span>Closer</span>
+                        </span>
+                        <span th:if="${muscle.impact < 0}" class="impact-pill impact-farther">
+                            <svg viewBox="0 0 16 16" fill="none" width="12" height="12" aria-hidden="true"><path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            <span>Farther</span>
+                        </span>
+                        <span th:if="${muscle.impact == 0}" class="impact-pill impact-same">
+                            <span>Same distance</span>
+                        </span>
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>
 </section>
-</body></html>
+</body>
+</html>

@@ -1,5 +1,4 @@
 package bg.fitnessplanner.planning.engine;
-
 import bg.fitnessplanner.catalog.application.ExerciseSnapshot;
 import bg.fitnessplanner.catalog.domain.MuscleGroup;
 import bg.fitnessplanner.profile.application.ProfileSnapshot;
@@ -7,7 +6,7 @@ import bg.fitnessplanner.planning.engine.PlanningModel.*;
 
 import java.util.*;
 
-/** Recomputes constraints and quality from the output; never trusts construction state or scores. */
+
 public final class PlanEvaluator {
     private final PlannerConfig config;
     public PlanEvaluator(PlannerConfig config) { this.config = config; }

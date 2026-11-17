@@ -39,24 +39,18 @@ public final class ExerciseExplainer {
 
         StringBuilder sb = new StringBuilder();
 
-        // 1. Role in the workout session
         sb.append(sessionRole(e, position)).append(" ");
 
-        // 2. Favorite / user preference highlight if applicable
         if (profile != null && profile.preferredExerciseIds().contains(e.id())) {
             sb.append("Prioritized from your preferred exercise favorites. ");
         }
 
-        // 3. Movement biomechanics & purpose
         sb.append(movementBiomechanics(e)).append(" ");
 
-        // 4. Volume contribution & muscle synergy
         sb.append(volumeAndSynergy(e, sets)).append(" ");
 
-        // 5. Equipment suitability
         sb.append(equipmentSuitability(e)).append(" ");
 
-        // 6. Programming goal & rep/rest prescription
         sb.append(prescriptionGoal(profile, repMin, repMax, restSeconds));
 
         return sb.toString().trim();
@@ -181,4 +175,3 @@ public final class ExerciseExplainer {
         return String.join(", ", names.subList(0, names.size() - 1)) + ", and " + names.get(names.size() - 1);
     }
 }
-

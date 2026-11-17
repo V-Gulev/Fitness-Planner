@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Objects;
 
-/** Versioned, framework-free configuration; the application loads it from planner-v1.json. */
 public record PlannerConfig(String version, int warmupSeconds, int maxExercisesPerDay, int maxSetsPerDay,
                             int minRecoveryGapDays, int secondaryHalfCredits,
                             Map<ExperienceLevel, VolumeTarget> volumes, Map<TrainingGoal, GoalRules> goals,

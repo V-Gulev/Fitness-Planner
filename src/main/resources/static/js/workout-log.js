@@ -1,15 +1,6 @@
 'use strict';
 
-/**
- * Modern Interactive Workout Logging Experience:
- * - Dynamic set rows with steppers & quick target autofill
- * - Interactive set completion checkmarks with auto-status updates
- * - Built-in rest timers with countdown, audio chime & vibration
- * - Live workout volume & progress HUD calculation
- * - Quick-jump exercise pills with completion indicators
- */
 (function () {
-    // Web Audio Synthesizer Chime
     function playChime() {
         try {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -17,7 +8,6 @@
             const ctx = new AudioCtx();
             const now = ctx.currentTime;
 
-            // Tone 1: 659.25 Hz (E5)
             const osc1 = ctx.createOscillator();
             const gain1 = ctx.createGain();
             osc1.type = 'sine';
@@ -29,7 +19,6 @@
             osc1.start(now);
             osc1.stop(now + 0.3);
 
-            // Tone 2: 880 Hz (A5)
             const osc2 = ctx.createOscillator();
             const gain2 = ctx.createGain();
             osc2.type = 'sine';
@@ -52,7 +41,6 @@
         return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    // Initialize Card Status Controls
     function initStatusControls() {
         document.querySelectorAll('.card-status-control').forEach(control => {
             const select = control.querySelector('.status-native-select');
@@ -71,7 +59,6 @@
                 recalculateHUD();
             };
 
-            // Set initial state
             syncUI(select.value || 'PENDING');
 
             buttons.forEach(btn => {
@@ -89,14 +76,12 @@
         });
     }
 
-    // Initialize Stepper Inputs (+ / -)
     function initSteppers(container) {
         const rows = container.matches?.('.card-set-row') ? [container] : container.querySelectorAll('.card-set-row');
         rows.forEach(row => {
             const fieldset = row.closest('.work-sets');
             const stepKg = parseFloat((fieldset && fieldset.dataset.loadStep) || '2.5');
 
-            // Weight Steppers
             const weightInput = row.querySelector('.col-weight input');
             const weightDown = row.querySelector('.col-weight .stepper-down');
             const weightUp = row.querySelector('.col-weight .stepper-up');
@@ -121,7 +106,6 @@
                 });
             }
 
-            // Reps Steppers
             const repsInput = row.querySelector('.col-reps input');
             const rirInput = row.querySelector('.col-rir input');
             const repsDown = row.querySelector('.col-reps .stepper-down');
@@ -147,7 +131,6 @@
                 });
             }
 
-            // Copy Target Button
             const copyBtn = row.querySelector('.btn-copy-target');
             if (copyBtn && !copyBtn.dataset.initialized) {
                 copyBtn.dataset.initialized = 'true';
@@ -163,7 +146,6 @@
                 });
             }
 
-            // Complete Set Button
             const checkBtn = row.querySelector('.btn-check-set');
             if (checkBtn && !checkBtn.dataset.initialized) {
                 checkBtn.dataset.initialized = 'true';
@@ -183,11 +165,9 @@
                     recalculateRowState(row);
                     recalculateHUD();
 
-                    // Check if all rows in this card are filled
                     const card = row.closest('.workout-card');
                     if (card) {
                         checkAutoCardCompletion(card);
-                        // Trigger card rest timer
                         const timer = card.querySelector('.rest-timer-bar');
                         if (timer && timer.startTimer) {
                             timer.startTimer();
@@ -196,7 +176,6 @@
                 });
             }
 
-            // Clear Set Button
             const clearBtn = row.querySelector('.btn-clear-set');
             if (clearBtn && !clearBtn.dataset.initialized) {
                 clearBtn.dataset.initialized = 'true';
@@ -211,7 +190,6 @@
                 });
             }
 
-            // Listen on inputs
             [weightInput, repsInput, rirInput].forEach(inp => {
                 if (inp) {
                     inp.addEventListener('input', () => {
@@ -221,7 +199,6 @@
                 }
             });
 
-            // Initial row state
             recalculateRowState(row);
         });
     }
@@ -248,7 +225,6 @@
         }
     }
 
-    // Initialize Rest Timers
     function initRestTimers() {
         document.querySelectorAll('.rest-timer-bar').forEach(bar => {
             const defaultSec = parseInt(bar.getAttribute('data-default-seconds') || '90', 10);
@@ -351,7 +327,6 @@
         });
     }
 
-    // Add Set Buttons
     function initAddSetButtons() {
         document.querySelectorAll('.add-set').forEach(button => {
             const card = button.closest('.workout-card');
@@ -395,7 +370,6 @@
                     label.htmlFor = label.htmlFor.replace(/-set-\d+-/, `-set-${index}-`);
                 });
 
-                // Clear initialization markers on cloned buttons
                 copy.querySelectorAll('[data-initialized]').forEach(el => delete el.dataset.initialized);
 
                 fieldset.append(copy);
@@ -409,7 +383,6 @@
         });
     }
 
-    // Autofill Target Across Entire Card
     function initAutofillButtons() {
         document.querySelectorAll('.autofill-sets').forEach(btn => {
             const card = btn.closest('.workout-card');
@@ -431,7 +404,6 @@
         });
     }
 
-    // Quick-Jump Navigation Pills
     function initQuickJumpPills() {
         document.querySelectorAll('.exercise-pill').forEach(pill => {
             pill.addEventListener('click', (e) => {
@@ -447,7 +419,6 @@
         });
     }
 
-    // Recalculate Session HUD Metrics
     function recalculateHUD() {
         const cards = Array.from(document.querySelectorAll('.workout-card'));
         const totalCards = cards.length;
@@ -475,7 +446,6 @@
                 }
             });
 
-            // Update card volume badge
             const cardVolEl = card.querySelector('.card-volume-val');
             if (cardVolEl) cardVolEl.textContent = Math.round(cardVolume).toLocaleString();
 
@@ -485,14 +455,12 @@
             const isDone = isCompletedStatus || (!isSkippedStatus && rows.length > 0 && cardSetsLogged >= rows.length);
             if (isDone) completedCards++;
 
-            // Update jump pill
             const pill = document.querySelector(`.exercise-pill[data-index="${idx}"]`);
             if (pill) {
                 pill.classList.toggle('is-finished', isDone);
             }
         });
 
-        // Update HUD display
         const hudCompleted = document.getElementById('hud-completed-count');
         const hudSets = document.getElementById('hud-sets-count');
         const hudVolume = document.getElementById('hud-volume-count');
@@ -506,14 +474,12 @@
             hudProgress.style.width = `${pct}%`;
         }
 
-        // Update sticky action bar
         const actionLabel = document.getElementById('action-completed-label');
         const actionVol = document.getElementById('action-total-volume');
         if (actionLabel) actionLabel.textContent = `${completedCards} of ${totalCards}`;
         if (actionVol) actionVol.textContent = Math.round(totalWorkoutVolume).toLocaleString();
     }
 
-    // Initialize all components on DOM ready
     function init() {
         initStatusControls();
         initSteppers(document);

@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
-/** Offline entry point. Uses the shipped engines without starting the web application or database. */
 public final class ExperimentMain {
     private static final List<String> VIOLATIONS = List.of("equipment", "exclusion", "catalog_skill", "prescription",
             "same_day_duplicate", "schedule", "empty_day", "duration", "recovery", "bounds", "day_type");

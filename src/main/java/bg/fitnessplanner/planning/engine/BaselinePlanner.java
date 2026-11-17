@@ -7,7 +7,6 @@ import bg.fitnessplanner.planning.engine.PlanningModel.*;
 
 import java.util.*;
 
-/** Fixed three-set muscle rotation, with the same hard gates but no score/split search. */
 public final class BaselinePlanner implements Planner {
     private final PlannerConfig config;
     public BaselinePlanner(PlannerConfig config) { this.config = config; }

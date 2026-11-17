@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-/** Validated command DTO shared by MVC binding and the profile application service. */
 public class ProfileForm {
     @NotNull(message = "Choose your training experience.")
     private ExperienceLevel experience;

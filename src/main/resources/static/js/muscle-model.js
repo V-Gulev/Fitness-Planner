@@ -1,11 +1,9 @@
 import * as THREE from './vendor/three.bundle.js';
 import { GLTFLoader, OrbitControls, MeshoptDecoder, RoomEnvironment } from './vendor/three.bundle.js';
 
-// Camera presets and bounding centers
 const HOME_FRONT = { pos: new THREE.Vector3(0, 0.90, 3.45), target: new THREE.Vector3(0, 0.86, 0.02) };
 const HOME_BACK  = { pos: new THREE.Vector3(0, 0.90, -3.45), target: new THREE.Vector3(0, 0.86, 0.02) };
 
-// Detailed anatomical framing targets computed from geometry
 const DETAIL_TARGETS = {
     CHEST:                  { target: new THREE.Vector3(0, 1.29, 0.03),  pos: new THREE.Vector3(0, 1.32, 1.25) },
     CHEST_UPPER:            { target: new THREE.Vector3(0, 1.34, 0.04),  pos: new THREE.Vector3(0, 1.36, 1.05) },
@@ -58,7 +56,6 @@ const DETAIL_TARGETS = {
     CALVES_SOLEUS:          { target: new THREE.Vector3(0, 0.27, -0.02), pos: new THREE.Vector3(0, 0.27, -1.10) }
 };
 
-// Cutaway rules: which superficial muscles to make translucent when deep layers are selected
 const CUTAWAY_FADE_REGIONS = {
     QUADRICEPS_INTERMEDIUS: ['QUADRICEPS_RECTUS'],
     HAMSTRINGS_MEMBRANOSUS: ['HAMSTRINGS_TENDINOSUS'],
@@ -68,14 +65,12 @@ const CUTAWAY_FADE_REGIONS = {
     CORE_TRANSVERSE:        ['CORE_OBLIQUES', 'CORE_RECTUS']
 };
 
-/** Classify each anatomical structure by name and layer into fitness group and region */
 function classifyStructure(name, layer) {
     if (layer === 'skeleton') {
         return { group: 'SKELETON', region: '', label: name };
     }
     const l = name.toLowerCase();
 
-    // CHEST
     if (l.includes('pectoralis major')) {
         if (l.includes('clavicular')) return { group: 'CHEST', region: 'CHEST_UPPER', label: 'Upper chest (clavicular head)' };
         if (l.includes('sternocostal')) return { group: 'CHEST', region: 'CHEST_MIDDLE', label: 'Middle chest (sternocostal head)' };
@@ -89,7 +84,6 @@ function classifyStructure(name, layer) {
         return { group: 'CHEST', region: 'CHEST_LOWER', label: 'Serratus anterior' };
     }
 
-    // SHOULDERS
     if (l.includes('deltoid')) {
         if (l.includes('clavicular') || l.includes('anterior')) return { group: 'SHOULDERS', region: 'SHOULDERS_FRONT', label: 'Anterior deltoid' };
         if (l.includes('acromial') || l.includes('lateral') || l.includes('middle')) return { group: 'SHOULDERS', region: 'SHOULDERS_SIDE', label: 'Middle deltoid' };
@@ -100,7 +94,6 @@ function classifyStructure(name, layer) {
         return { group: 'SHOULDERS', region: 'SHOULDERS_REAR', label: 'Rotator cuff' };
     }
 
-    // BACK
     if (l.includes('trapezius')) {
         return { group: 'BACK', region: 'BACK_UPPER', label: 'Trapezius' };
     }
@@ -114,7 +107,6 @@ function classifyStructure(name, layer) {
         return { group: 'BACK', region: 'BACK_ERECTORS', label: 'Erector spinae' };
     }
 
-    // ARMS: BICEPS & FOREARMS
     if (l.includes('biceps brachii')) {
         if (l.includes('long head')) return { group: 'BICEPS', region: 'BICEPS_LONG', label: 'Biceps long head' };
         if (l.includes('short head')) return { group: 'BICEPS', region: 'BICEPS_SHORT', label: 'Biceps short head' };
@@ -127,7 +119,6 @@ function classifyStructure(name, layer) {
         return { group: 'BICEPS', region: 'BICEPS_LONG', label: 'Forearm' };
     }
 
-    // TRICEPS
     if (l.includes('triceps brachii')) {
         if (l.includes('long head')) return { group: 'TRICEPS', region: 'TRICEPS_LONG', label: 'Triceps long head' };
         if (l.includes('lateral head')) return { group: 'TRICEPS', region: 'TRICEPS_LATERAL', label: 'Triceps lateral head' };
@@ -138,7 +129,6 @@ function classifyStructure(name, layer) {
         return { group: 'TRICEPS', region: 'TRICEPS_LATERAL', label: 'Anconeus' };
     }
 
-    // CORE
     if (l.includes('rectus abdominis') || l.includes('pyramidalis') || l.includes('linea alba')) {
         return { group: 'CORE', region: 'CORE_RECTUS', label: 'Rectus abdominis' };
     }
@@ -149,7 +139,6 @@ function classifyStructure(name, layer) {
         return { group: 'CORE', region: 'CORE_TRANSVERSE', label: 'Transversus abdominis' };
     }
 
-    // GLUTES & HIPS
     if (l.includes('gluteus maximus')) {
         return { group: 'GLUTES', region: 'GLUTES_MAXIMUS', label: 'Gluteus maximus' };
     }
@@ -160,7 +149,6 @@ function classifyStructure(name, layer) {
         return { group: 'GLUTES', region: 'GLUTES_MINIMUS', label: 'Gluteus minimus & deep rotators' };
     }
 
-    // QUADRICEPS & UPPER LEGS
     if (l.includes('rectus femoris')) {
         return { group: 'QUADRICEPS', region: 'QUADRICEPS_RECTUS', label: 'Rectus femoris' };
     }
@@ -180,7 +168,6 @@ function classifyStructure(name, layer) {
         return { group: 'CORE', region: 'CORE_TRANSVERSE', label: 'Iliopsoas' };
     }
 
-    // HAMSTRINGS
     if (l.includes('biceps femoris')) {
         return { group: 'HAMSTRINGS', region: 'HAMSTRINGS_BICEPS', label: 'Biceps femoris' };
     }
@@ -191,7 +178,6 @@ function classifyStructure(name, layer) {
         return { group: 'HAMSTRINGS', region: 'HAMSTRINGS_MEMBRANOSUS', label: 'Semimembranosus' };
     }
 
-    // CALVES & LOWER LEGS
     if (l.includes('gastrocnemius')) {
         if (l.includes('medial head')) return { group: 'CALVES', region: 'CALVES_MEDIAL', label: 'Medial gastrocnemius' };
         if (l.includes('lateral head')) return { group: 'CALVES', region: 'CALVES_LATERAL', label: 'Lateral gastrocnemius' };
@@ -204,7 +190,6 @@ function classifyStructure(name, layer) {
         return { group: 'CALVES', region: 'CALVES_MEDIAL', label: 'Lower leg & calf' };
     }
 
-    // NECK & HEAD
     if (l.includes('splenius') || l.includes('scalenus') || l.includes('capitis') || l.includes('sternocleidomastoid') || l.includes('omohyoid') || l.includes('sternohyoid') || l.includes('sternothyroid') || l.includes('thyrohyoid')) {
         return { group: 'BACK', region: 'BACK_UPPER', label: 'Neck & cervical stabilizers' };
     }
@@ -215,14 +200,12 @@ function classifyStructure(name, layer) {
 export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) {
     if (!canvas) return null;
 
-    // Check WebGL availability
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
     if (!gl) {
         console.warn('WebGL is not available in this browser.');
         return null;
     }
 
-    // Setup Three.js WebGL renderer
     const renderer = new THREE.WebGLRenderer({
         canvas,
         antialias: true,
@@ -234,17 +217,14 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.05;
 
-    // Scene & dark gym background matching --background: #171a17
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x171a17);
 
-    // Setup PBR image-based lighting environment
     const pmrem = new THREE.PMREMGenerator(renderer);
     const roomEnv = new RoomEnvironment();
     scene.environment = pmrem.fromScene(roomEnv, 0.04).texture;
     scene.environmentIntensity = 0.85;
 
-    // Studio directional lighting
     const keyLight = new THREE.DirectionalLight(0xfff5eb, 1.5);
     keyLight.position.set(2.2, 3.2, 2.8);
     scene.add(keyLight);
@@ -261,7 +241,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     lowFill.position.set(0, -1.0, 1.5);
     scene.add(lowFill);
 
-    // Floor contact shadow disc
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = shadowCanvas.height = 256;
     const sCtx = shadowCanvas.getContext('2d');
@@ -281,7 +260,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     shadowMesh.position.set(0, 0.001, 0.02);
     scene.add(shadowMesh);
 
-    // Floor subtle pedestal disc
     const pedestalMesh = new THREE.Mesh(
         new THREE.CylinderGeometry(0.52, 0.54, 0.006, 48),
         new THREE.MeshStandardMaterial({
@@ -293,11 +271,9 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     pedestalMesh.position.set(0, 0.003, 0.02);
     scene.add(pedestalMesh);
 
-    // Camera with 30-degree FOV for minimal perspective distortion
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 20);
     camera.position.copy(HOME_FRONT.pos);
 
-    // OrbitControls for natural 360-degree rotation and zoom
     const controls = new OrbitControls(camera, canvas);
     controls.target.copy(HOME_FRONT.target);
     controls.enableDamping = true;
@@ -308,7 +284,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     controls.maxPolarAngle = Math.PI * 0.88;
     controls.screenSpacePanning = true;
 
-    // Render loop and state
     let needsRender = true;
     let flyAnim = null;
     function requestRender() { needsRender = true; }
@@ -316,7 +291,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         requestRender();
     });
 
-    // Model structures and materials
     const meshes = [];
     const meshesByGroup = new Map();
     const meshesByRegion = new Map();
@@ -330,14 +304,12 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     let currentDetailGroup = '';
     let currentLayerMode = 'muscles'; // 'muscles', 'cutaway', 'skeleton', 'both'
 
-    // Raycasting and pointer tracking
     const raycaster = new THREE.Raycaster();
     const pointerNdc = new THREE.Vector2();
     let pointerDownPos = null;
     let isDragging = false;
     let hoverThrottleTimer = 0;
 
-    // Loading indicator element in stage
     const stageContainer = canvas.parentElement;
     let loadingEl = stageContainer?.querySelector('[data-model-loading]');
     if (!loadingEl && stageContainer) {
@@ -348,7 +320,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         stageContainer.appendChild(loadingEl);
     }
 
-    // Load Écorché compressed model
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
 
@@ -385,15 +356,12 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
                 }
             });
 
-            // Prepare specialized materials
             const baseMuscle = rawMaterials.Muscle || new THREE.MeshStandardMaterial({ color: 0xb54035, roughness: 0.48 });
             const baseBone = rawMaterials.Bone || new THREE.MeshStandardMaterial({ color: 0xded8ce, roughness: 0.62 });
 
-            // Outer superficial muscle material with support for transparency during cutaway
             const outerMuscle = baseMuscle.clone();
             outerMuscle.name = 'OuterMuscle';
 
-            // Selected material: vibrant brand lime-green accent (#c5e777)
             const pickMuscle = new THREE.MeshStandardMaterial({
                 color: 0xc5e777,
                 emissive: 0x3e5e1e,
@@ -412,7 +380,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
                 vertexColors: false
             });
 
-            // Hover material: subtle lime/sage emissive glow preserving anatomical muscle colors
             const hoverMuscle = baseMuscle.clone();
             hoverMuscle.emissive = new THREE.Color(0x3d5a2b);
             hoverMuscle.emissiveIntensity = 0.35;
@@ -425,7 +392,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
             hoverBone.emissive = new THREE.Color(0x3d5a2b);
             hoverBone.emissiveIntensity = 0.35;
 
-            // Cutaway / translucent material for covering superficial muscles
             const cutawayMuscle = new THREE.MeshStandardMaterial({
                 color: 0x8a3832,
                 transparent: true,
@@ -456,7 +422,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
                 cutaway: cutawayMuscle
             };
 
-            // Assign OuterMuscle material to all superficial muscles
             for (const m of meshes) {
                 if (m.userData.layer === 'superficial muscles' && m.userData.baseMatName === 'Muscle') {
                     m.userData.baseMatName = 'OuterMuscle';
@@ -464,16 +429,13 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
                 }
             }
 
-            // Apply layer visibility (muscles only by default, skeleton hidden)
             applyLayerVisibility();
 
-            // Apply queued selection & view
             applySelection();
             if (currentView && currentView !== 'front') {
                 applyView(currentView, currentDetailGroup, selectedKey);
             }
 
-            // Fade out loading indicator
             if (loadingEl) {
                 loadingEl.classList.add('is-loaded');
                 setTimeout(() => loadingEl.remove(), 450);
@@ -497,7 +459,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         }
     );
 
-    // Layer visibility management
     function applyLayerVisibility() {
         const isSkeletonView = currentLayerMode === 'skeleton';
         const isBoth = currentLayerMode === 'both';
@@ -515,7 +476,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         }
     }
 
-    // Material updates based on selection, hover, and cutaways
     function applySelection() {
         if (!stateMaterials) return;
 
@@ -546,14 +506,11 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
 
     function isMeshSelected(mesh, key) {
         if (!key) return false;
-        // Region key match
         if (mesh.userData.region === key) return true;
-        // Group key match
         if (mesh.userData.group === key) return true;
         return false;
     }
 
-    // Smooth camera transition (flyTo)
     function flyTo(targetPos, targetLookAt, duration = 850) {
         flyAnim = {
             start: performance.now(),
@@ -587,14 +544,12 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         } else if (view === 'back') {
             flyTo(HOME_BACK.pos, HOME_BACK.target);
         } else if (view === 'detail') {
-            // Find appropriate camera target: region first, then group, then default chest
             const targetKey = key || group || 'CHEST';
             const preset = DETAIL_TARGETS[targetKey] || DETAIL_TARGETS[group] || DETAIL_TARGETS.CHEST;
             flyTo(preset.pos, preset.target);
         }
     }
 
-    // Picking via raycaster
     function pickMesh(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
@@ -606,7 +561,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
 
         raycaster.setFromCamera(pointerNdc, camera);
 
-        // Raycast against visible meshes only, ignoring heavily faded cutaways
         const candidateMeshes = meshes.filter(m => m.visible && (!m.material.transparent || m.material.opacity > 0.35));
         const intersects = raycaster.intersectObjects(candidateMeshes, false);
 
@@ -616,7 +570,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         return null;
     }
 
-    // Pointer events on canvas
     canvas.addEventListener('pointerdown', (e) => {
         if (e.button !== 0) return;
         pointerDownPos = { x: e.clientX, y: e.clientY };
@@ -632,7 +585,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
             }
         }
 
-        // Throttle hover raycasting when not dragging
         if (!isDragging && e.pointerType === 'mouse' && !e.buttons) {
             clearTimeout(hoverThrottleTimer);
             hoverThrottleTimer = setTimeout(() => {
@@ -658,10 +610,8 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
 
         if (dist <= 6 && !isDragging) {
-            // Click / tap detected
             const hit = pickMesh(e.clientX, e.clientY);
             if (hit) {
-                // In detail mode or when clicking a specific region, prefer region key
                 const hitRegion = hit.userData.region;
                 const hitGroup = hit.userData.group;
                 const chosen = (currentView === 'detail' && hitRegion) ? hitRegion : (hitGroup || hitRegion || '');
@@ -669,7 +619,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
                     onSelect(chosen);
                 }
             } else {
-                // Clicked background empty space -> deselect to all muscles
                 onSelect('');
             }
         }
@@ -689,12 +638,10 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         }
     });
 
-    // Double-click to reset view to home
     canvas.addEventListener('dblclick', () => {
         flyTo(HOME_FRONT.pos, HOME_FRONT.target);
     });
 
-    // Responsive canvas resizing
     function handleResize() {
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
@@ -713,12 +660,10 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
     resizeObserver.observe(canvas);
     handleResize();
 
-    // Render-on-demand animation loop
     renderer.setAnimationLoop(() => {
         if (flyAnim) {
             const elapsed = performance.now() - flyAnim.start;
             const t = Math.min(1, elapsed / flyAnim.duration);
-            // Cubic ease-out
             const ease = 1 - Math.pow(1 - t, 3);
             camera.position.lerpVectors(flyAnim.fromPos, flyAnim.toPos, ease);
             controls.target.lerpVectors(flyAnim.fromTarget, flyAnim.toTarget, ease);
@@ -739,7 +684,6 @@ export function createMuscleModel(canvas, groupOf, onHover, onSelect, onRotate) 
         }
     });
 
-    // Public API returned to exercise-library.js
     return {
         setView(view, group, key) {
             applyView(view, group, key);

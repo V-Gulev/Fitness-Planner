@@ -1,11 +1,5 @@
 'use strict';
 
-/**
- * Interactive behaviors for /plans:
- * - Day filter tabs (switch between "All days" masonry and focused single day views)
- * - Support URL hash deep-links (e.g. #plan-day-123 from the dashboard)
- * - Seamless elimination of empty space
- */
 (function() {
     document.addEventListener('click', function(e) {
         var btn = e.target.closest('.day-filter-btn');
@@ -20,7 +14,6 @@
         var isAlreadyActive = btn.classList.contains('is-active') && filter !== 'all';
         var targetFilter = isAlreadyActive ? 'all' : filter;
 
-        // Update active tab buttons
         var buttons = toolbar ? Array.from(toolbar.querySelectorAll('.day-filter-btn')) : [];
         buttons.forEach(function(b) {
             var bFilter = b.getAttribute('data-day-filter');
@@ -29,7 +22,6 @@
             b.setAttribute('aria-selected', String(isActive));
         });
 
-        // Update day cards in grid
         var cards = Array.from(grid.querySelectorAll('.plan-day-card'));
         if (targetFilter === 'all') {
             grid.classList.remove('is-single-day');

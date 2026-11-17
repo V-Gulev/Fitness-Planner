@@ -7,7 +7,6 @@ import bg.fitnessplanner.planning.engine.PlanningModel.*;
 
 import java.util.*;
 
-/** Local mutable construction state; never escapes the engine. */
 final class DraftPlan {
     final List<Integer> weekdays;
     final List<DayType> types;

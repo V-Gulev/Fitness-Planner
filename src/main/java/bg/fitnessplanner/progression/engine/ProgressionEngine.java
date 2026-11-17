@@ -7,7 +7,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 
-/** Pure, conservative double progression; no persistence, clock, or inferred performed weights. */
 public final class ProgressionEngine {
     private final ProgressionConfig config;
     public ProgressionEngine(ProgressionConfig config) { this.config = config; }

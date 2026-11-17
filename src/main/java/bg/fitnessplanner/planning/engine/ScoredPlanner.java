@@ -24,7 +24,6 @@ public final class ScoredPlanner implements Planner {
         return search(profile, catalog, false).getFirst();
     }
 
-    /** Returns up to three distinct prescriptions in the same order used to choose the winner. */
     public List<Result> candidates(ProfileSnapshot profile, List<ExerciseSnapshot> catalog) {
         return search(profile, catalog, true);
     }

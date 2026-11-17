@@ -127,7 +127,6 @@ if (planEditor) {
         }
     }
 
-    // Day toolbar filter tabs
     const filterButtons = planEditor.querySelectorAll('.editor-days-toolbar [data-day-filter]');
     const dayCards = planEditor.querySelectorAll('.editor-day');
 
@@ -155,7 +154,6 @@ if (planEditor) {
         });
     });
 
-    // Dynamic split type selector synchronization
     planEditor.querySelectorAll('.day-focus-select').forEach(select => {
         select.addEventListener('change', () => {
             const weekday = select.name.replace('type-', '');
@@ -168,7 +166,6 @@ if (planEditor) {
         });
     });
 
-    // Jump navigation fallback
     for (const pill of planEditor.querySelectorAll('[data-jump-day]')) {
         pill.addEventListener('click', () => {
             const weekday = pill.getAttribute('data-jump-day');
@@ -183,7 +180,6 @@ if (planEditor) {
         });
     }
 
-    // Steppers and initial counts
     initStepper(planEditor);
     updateTotalExercises();
 

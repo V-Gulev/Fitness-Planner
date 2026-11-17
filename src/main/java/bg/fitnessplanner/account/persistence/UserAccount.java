@@ -27,7 +27,6 @@ public class UserAccount {
     private Instant createdAt;
 
     protected UserAccount() {
-        // Required by JPA.
     }
 
     public UserAccount(String emailNormalized, String passwordHash, Instant createdAt) {

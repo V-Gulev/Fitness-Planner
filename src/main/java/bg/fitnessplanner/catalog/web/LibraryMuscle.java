@@ -5,7 +5,6 @@ import bg.fitnessplanner.catalog.domain.MuscleGroup;
 
 import java.util.Set;
 
-/** Library anatomy and exercise examples are independent of the planner's muscle taxonomy. */
 public enum LibraryMuscle {
     CHEST, BACK, QUADRICEPS, HAMSTRINGS, GLUTES, SHOULDERS, BICEPS, TRICEPS, CALVES, CORE,
 

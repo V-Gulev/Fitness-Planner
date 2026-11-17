@@ -1,12 +1,5 @@
 'use strict';
 
-/**
- * Interactive behaviors for /login and /register pages:
- * - Password visibility toggle (accessible, SVG morphing)
- * - Real-time password strength and requirement validation (on register)
- * - Live password match confirmation (on register)
- * - Form submit feedback and duplicate submission prevention
- */
 document.addEventListener('DOMContentLoaded', () => {
     initPasswordToggles();
     initRegisterInteractions();
@@ -83,14 +76,12 @@ function initRegisterInteractions() {
         const val = passwordInput.value || '';
         const confirmVal = confirmInput ? confirmInput.value || '' : '';
 
-        // Password strength meter
         const { score, label } = evaluateStrength(val);
         strengthBar.setAttribute('data-score', String(score));
         if (strengthText) {
             strengthText.textContent = label;
         }
 
-        // Requirements checklist
         if (reqLength) {
             const validLen = val.length >= 10 && val.length <= 64;
             reqLength.classList.toggle('is-met', validLen);
@@ -103,7 +94,6 @@ function initRegisterInteractions() {
             reqVariety.setAttribute('aria-checked', String(hasVariety));
         }
 
-        // Match confirmation
         if (matchStatus && confirmInput) {
             if (!confirmVal) {
                 matchStatus.textContent = '';
@@ -123,7 +113,6 @@ function initRegisterInteractions() {
         confirmInput.addEventListener('input', update);
     }
 
-    // Run initial update in case browser autofilled
     update();
 }
 
@@ -137,7 +126,6 @@ function initFormSubmission() {
         const button = form.querySelector('.auth-submit-btn');
         if (!button) return;
 
-        // Prevent double submit and show loading state
         button.classList.add('is-submitting');
         const spinner = button.querySelector('.submit-spinner');
         if (spinner) spinner.removeAttribute('hidden');
@@ -145,7 +133,6 @@ function initFormSubmission() {
 }
 
 function initAutofocus() {
-    // Only autofocus if user hasn't already focused something and there's no error alert stealing focus
     const errorAlert = document.querySelector('.feedback-error');
     if (errorAlert) {
         errorAlert.setAttribute('tabindex', '-1');
@@ -158,4 +145,3 @@ function initAutofocus() {
         firstInput.focus();
     }
 }
-

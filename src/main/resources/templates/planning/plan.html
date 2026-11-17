@@ -5,7 +5,6 @@
 <div class="page-shell">
     <header th:replace="~{fragments/layout :: header}"></header>
     <main id="main" class="workspace plan-workspace" tabindex="-1">
-        <!-- Status / Notice Feedback -->
         <div class="feedback feedback-success" role="status" th:if="${notice}">
             <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
@@ -17,7 +16,6 @@
             </div>
         </div>
 
-        <!-- Generation Problems Alert -->
         <div class="feedback feedback-error" role="alert" th:if="${generationProblems}">
             <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
@@ -33,7 +31,6 @@
             </div>
         </div>
 
-        <!-- No profile yet -->
         <div th:if="${page.profile == null}" class="page-intro plan-empty-intro">
             <h1>Your week,<br><span>with a plan.</span></h1>
             <p class="lead">Training built around your saved schedule, equipment, and exercise choices.</p>
@@ -49,7 +46,6 @@
             </section>
         </div>
 
-        <!-- Profile exists but no plan yet -->
         <div th:if="${page.profile != null and page.plan == null}" class="page-intro plan-empty-intro">
             <h1>Your week,<br><span>with a plan.</span></h1>
             <p class="lead">Training built around your saved schedule, equipment, and exercise choices.</p>
@@ -76,7 +72,6 @@
             </section>
         </div>
 
-        <!-- Plan exists — Active or Saved Version View -->
         <article th:if="${page.plan != null}" th:with="plan=${page.plan}" class="saved-plan saved-plan-lead" aria-labelledby="saved-plan-title">
             <div class="plan-hero-card training-panel">
                 <div class="plan-hero-header">
@@ -103,7 +98,6 @@
                         </p>
                     </div>
 
-                    <!-- Quick Action Buttons -->
                     <div class="plan-hero-actions">
                         <a th:if="${plan.active and !plan.profileChanged}" class="button button-edit-plan" th:href="@{/plans/{id}/edit(id=${plan.id})}">
                             <svg class="action-btn-icon" viewBox="0 0 18 18" fill="none" aria-hidden="true">
@@ -120,7 +114,6 @@
                     </div>
                 </div>
 
-                <!-- Plan Metrics Ribbon -->
                 <div class="plan-metrics-ribbon">
                     <div class="metric-ribbon-item">
                         <svg class="metric-ribbon-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -165,7 +158,6 @@
                 </div>
             </div>
 
-            <!-- Profile mismatch warning -->
             <div class="feedback feedback-error" role="alert" th:if="${plan.profileChanged}">
                 <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
@@ -181,7 +173,6 @@
                 <section th:replace="~{planning/impact :: comparison(${editImpact})}"></section>
             </div>
 
-            <!-- Plan explanation accordion -->
             <details class="plan-rationale-accordion training-panel">
                 <summary>
                     <div class="rationale-summary-content">
@@ -211,7 +202,6 @@
                 </div>
             </details>
 
-            <!-- Interactive day filter toolbar -->
             <div class="plan-days-toolbar" th:if="${plan.days.size() > 1}">
                 <div class="plan-days-filter" role="tablist" aria-label="Filter workout days">
                     <button type="button" class="day-filter-btn is-active" data-day-filter="all" role="tab" aria-selected="true">
@@ -227,7 +217,6 @@
                 </div>
             </div>
 
-            <!-- Workout days in a continuous masonry flow -->
             <div class="plan-days-grid">
                 <section class="plan-day-card" th:each="day, state : ${plan.days}"
                          th:id="'plan-day-' + ${day.id}"
@@ -289,7 +278,6 @@
                 </section>
             </div>
 
-            <!-- Modeled Weekly Volume with Visual Progress Meters -->
             <section class="weekly-volume weekly-volume-compact training-panel" aria-labelledby="volume-title">
                 <details class="volume-details">
                     <summary class="volume-summary-header">
@@ -340,7 +328,6 @@
             </section>
         </article>
 
-        <!-- Plan Management Panel (when viewing plan) -->
         <section th:if="${page.plan != null and page.profile != null}" class="plan-manage training-panel" aria-labelledby="manage-title">
             <h2 id="manage-title">Manage your plan</h2>
             <div class="plan-manage-actions">
@@ -359,7 +346,6 @@
             <p class="field-help" th:text="${page.profile.trainingDays()} + ' selected days · up to ' + ${page.profile.sessionMinutes} + ' minutes per session'"></p>
         </section>
 
-        <!-- Plan History -->
         <section class="plan-history training-panel" aria-labelledby="history-title" th:unless="${#lists.isEmpty(page.history)}">
             <div class="history-header">
                 <h2 id="history-title">Recent plan versions</h2>
@@ -399,7 +385,6 @@
         var isAlreadyActive = btn.classList.contains('is-active') && filter !== 'all';
         var targetFilter = isAlreadyActive ? 'all' : filter;
 
-        // Update active tab buttons
         var buttons = toolbar ? Array.from(toolbar.querySelectorAll('.day-filter-btn')) : [];
         buttons.forEach(function(b) {
             var bFilter = b.getAttribute('data-day-filter');
@@ -408,7 +393,6 @@
             b.setAttribute('aria-selected', String(isActive));
         });
 
-        // Update day cards in grid
         var cards = Array.from(grid.querySelectorAll('.plan-day-card'));
         if (targetFilter === 'all') {
             grid.classList.remove('is-single-day');

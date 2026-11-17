@@ -439,7 +439,6 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
 .plan-history ul { list-style: none; padding: 0; }
 .plan-history li + li { margin-top: .8rem; }
 
-/* Plan-first layout: compact plan + manage section below */
 .saved-plan-lead { padding-top: 0; }
 
 .plan-hero-card {
@@ -539,7 +538,6 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
 
 .plan-hero-form { margin: 0; }
 
-/* Plan Metrics Ribbon */
 .plan-metrics-ribbon {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
@@ -581,7 +579,6 @@ dd { margin: .2rem 0 0; font-size: .94rem; }
 .metric-status-valid { color: var(--accent); }
 .metric-status-degraded { color: #ffbe88; }
 
-/* Plan Rationale Accordion */
 .plan-rationale-accordion {
     margin-bottom: 2rem;
     border: 1px solid var(--line);
@@ -655,7 +652,6 @@ details[open] > summary .chevron-icon {
     flex: none;
 }
 
-/* Multi-column masonry flow: eliminates empty vertical and horizontal voids */
 .plan-days-toolbar {
     margin-block: .75rem 1.25rem;
 }
@@ -846,7 +842,6 @@ details[open] > summary .chevron-icon {
     transform: translateX(3px);
 }
 
-/* Modern compact table */
 .plan-table-container {
     width: 100%;
 }
@@ -886,7 +881,6 @@ details[open] > summary .chevron-icon {
     vertical-align: middle;
 }
 
-/* Precise column sizing for plan tables to eliminate dead empty space */
 .plan-modern-table .col-exercise { width: auto; text-align: left; }
 .plan-modern-table .col-sets { width: 4.5rem; text-align: center; }
 .plan-modern-table .col-reps { width: 5.5rem; text-align: center; }
@@ -1159,7 +1153,6 @@ details[open] > summary .chevron-icon {
     .input-affix-wrapper:focus-within .input-leading-icon, .password-toggle:active { transform: translateY(-50%) !important; }
 }
 
-/* Workout logging keeps prescription, accepted targets, and actual sets in distinct reading groups. */
 .date-choice { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; }
 .date-choice + .field-help { margin-block: 1rem 2rem; max-width: 72ch; }
 .workout-target-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin-top: .8rem; }
@@ -1182,11 +1175,7 @@ details[open] > summary .chevron-icon {
 .workout-entry .selection-reason { max-width: 72ch; margin-block: .75rem 1rem; }
 [hidden] { display: none !important; }
 
-/* ==========================================================================
-   WORKOUT LOGGING & SESSION WORKSPACE (MODERN ATHLETIC REDESIGN)
-   ========================================================================== */
 
-/* Breadcrumb Navigation */
 .workout-breadcrumb,
 .plan-breadcrumb {
     display: flex;
@@ -1210,7 +1199,6 @@ details[open] > summary .chevron-icon {
 .breadcrumb-sep { color: var(--line); }
 .breadcrumb-current { color: var(--text); font-weight: 500; }
 
-/* Session Header */
 .workout-session-header {
     margin-bottom: 2rem;
 }
@@ -1264,7 +1252,6 @@ details[open] > summary .chevron-icon {
     max-width: 68ch;
 }
 
-/* Preserved Session Hero Banner (when completed or cancelled) */
 .session-completed-hero {
     display: flex;
     align-items: flex-start;
@@ -1305,7 +1292,6 @@ details[open] > summary .chevron-icon {
     max-width: 60ch;
 }
 
-/* Workout HUD Card */
 .workout-hud-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -1368,7 +1354,6 @@ details[open] > summary .chevron-icon {
     box-shadow: 0 0 10px rgba(197, 231, 119, 0.4);
 }
 
-/* Exercise Quick-Jump Pills */
 .exercise-nav-pills {
     display: flex;
     gap: .5rem;
@@ -1420,7 +1405,6 @@ details[open] > summary .chevron-icon {
     box-shadow: 0 0 6px var(--accent);
 }
 
-/* Workout Exercise Card */
 .workout-card {
     background: var(--surface);
     border: 1px solid var(--line);
@@ -1442,7 +1426,6 @@ details[open] > summary .chevron-icon {
     box-shadow: 0 0 0 2px var(--accent), 0 10px 30px rgba(197, 231, 119, 0.2);
 }
 
-/* Card Header */
 .card-header {
     display: flex;
     flex-wrap: wrap;
@@ -1490,7 +1473,6 @@ details[open] > summary .chevron-icon {
     font-weight: 600;
 }
 
-/* Status Segment Control */
 .status-segment-group {
     position: relative;
 }
@@ -1539,7 +1521,6 @@ details[open] > summary .chevron-icon {
     color: #9ba393;
 }
 
-/* Rest Timer Widget */
 .rest-timer-bar {
     display: flex;
     flex-wrap: wrap;
@@ -1629,7 +1610,6 @@ details[open] > summary .chevron-icon {
     transition: width 1s linear;
 }
 
-/* Sets Table Header & Grid */
 .sets-header-row {
     display: grid;
     grid-template-columns: 3.75rem minmax(130px, 1.2fr) minmax(130px, 1.2fr) minmax(75px, 0.8fr) 4.5rem;
@@ -1718,7 +1698,6 @@ details[open] > summary .chevron-icon {
     background: rgba(197, 231, 119, 0.08);
 }
 
-/* Numeric Stepper Inputs */
 .stepper-input {
     width: 100%;
     display: flex;
@@ -1796,7 +1775,6 @@ details[open] > summary .chevron-icon {
 .stepper-input input:focus { outline: none; }
 .compact-label { display: none; }
 
-/* RIR Column Input */
 .col-rir input,
 .col-rir input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]) {
     width: 100%;
@@ -1832,7 +1810,6 @@ details[open] > summary .chevron-icon {
     outline: none;
 }
 
-/* Set Checkmark & Clear Action Col */
 .set-check-col {
     display: flex;
     align-items: center;
@@ -1883,7 +1860,6 @@ details[open] > summary .chevron-icon {
     color: #f87171;
 }
 
-/* Set Actions Toolbar */
 .set-actions-toolbar {
     display: flex;
     flex-wrap: wrap;
@@ -1913,7 +1889,6 @@ details[open] > summary .chevron-icon {
     margin-top: .5rem;
 }
 
-/* Preserved Sets View (when completed) */
 .completed-sets-grid {
     display: flex;
     flex-wrap: wrap;
@@ -1973,7 +1948,6 @@ details[open] > summary .chevron-icon {
     color: var(--accent);
 }
 
-/* Sticky Action Bar */
 .workout-action-bar {
     position: sticky;
     bottom: 1.5rem;
@@ -2032,7 +2006,6 @@ details[open] > summary .chevron-icon {
     margin-top: .5rem;
 }
 
-/* Animations */
 @keyframes cardEnter {
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
@@ -2051,7 +2024,6 @@ details[open] > summary .chevron-icon {
     50% { box-shadow: 0 0 18px rgba(197, 231, 119, 0.4); }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .sets-header-row { display: none; }
     .card-set-row,
@@ -2269,9 +2241,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
 .option-heading .button { width: 100%; }
 .option-entry:first-child { border-color: var(--control-line); }
 .option-week summary { padding: .9rem 0; }
-/* ==========================================================================
-   Plan Editor Surface (/plans/{id}/edit)
-   ========================================================================== */
 
 .edit-nav-row { margin-bottom: 1.5rem; }
 .plan-back-link {
@@ -2300,11 +2269,7 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     margin: 0 0 .5rem;
 }
 
-/* ==========================================================================
-   PLAN EDITOR & IMPACT PREVIEW (ATHLETIC REDESIGN)
-   ========================================================================== */
 
-/* Hero & Header Badges */
 .edit-badge-strip {
     display: flex;
     flex-wrap: wrap;
@@ -2338,7 +2303,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     line-height: 1.5;
 }
 
-/* Sticky / Elevated Action Control Bar */
 .editor-actions {
     position: sticky;
     top: 1rem;
@@ -2455,7 +2419,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
 .editor-btn-save:active { transform: translateY(1px); }
 .editor-actions .button:disabled { opacity: .5; cursor: not-allowed; }
 
-/* Day Filter Toolbar in Editor */
 .editor-days-toolbar {
     display: inline-flex;
     flex-wrap: wrap;
@@ -2490,7 +2453,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     font-weight: 600;
 }
 
-/* Day Accordions in Editor */
 .editor-days-container {
     display: flex;
     flex-direction: column;
@@ -2611,7 +2573,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     pointer-events: none;
 }
 
-/* Exercise Row Cards */
 .editor-exercise-rows {
     display: flex;
     flex-direction: column;
@@ -2739,7 +2700,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
 }
 .add-icon { width: 16px; height: 16px; }
 
-/* Row animations */
 .row-anim-enter {
     animation: row-slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -2771,7 +2731,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     50% { box-shadow: 0 6px 20px -2px rgba(197, 231, 119, 0.65); }
 }
 
-/* Impact Preview Styling */
 .weekly-impact {
     margin-block: 1.5rem 2rem;
 }
@@ -3006,7 +2965,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     .editor-btn-preview, .editor-btn-save { width: 100%; justify-content: center; }
 }
 
-/* Compact workout cards for /workouts */
 .available-workouts { margin-bottom: 3.5rem; }
 .available-workouts-heading h2 { font-size: 2rem; margin-bottom: .25rem; }
 .workout-cards-grid {
@@ -3091,7 +3049,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     font-size: .88rem;
 }
 
-/* Shared choice chips retain native input and button behavior. */
 .chip-group { display: flex; flex-wrap: wrap; gap: .55rem; }
 .choice-chip { display: inline-flex; position: relative; min-width: 0; cursor: pointer; }
 .choice-chip input[type="checkbox"], .choice-chip input[type="radio"] { min-height: 0; position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; margin: 0; cursor: pointer; }
@@ -3116,7 +3073,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     }
 }
 
-/* Training profile */
 .profile-workspace .page-intro { margin-bottom: 2rem; }
 .profile-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem); gap: 2rem; align-items: start; }
 .profile-workspace .form-section { display: block; padding: 1.5rem; border: 1px solid var(--line); border-radius: var(--radius-panel); margin-bottom: 1rem; }
@@ -3147,7 +3103,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     .profile-disclosure > summary { padding-inline: 1.05rem; }
 }
 
-/* Exercise library */
 .library-workspace .page-intro { margin-bottom: 1.75rem; }
 .library-layout { display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1.4fr); align-items: start; gap: clamp(1.2rem, 3vw, 2.75rem); }
 .library-layout:has(.muscle-explorer[hidden]) { grid-template-columns: minmax(0, 1fr); }
@@ -3207,9 +3162,6 @@ a.dashboard-day-next:hover { background: var(--accent-hover); color: var(--backg
     .exercise-target { margin-left: 1.7rem; }
 }
 
-/* ==========================================================================
-   Interactive Workout Calendar (/workouts) & Dashboard Mini-Calendar
-   ========================================================================== */
 
 .workout-card {
     transition: border-color 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease;
@@ -3542,7 +3494,6 @@ a.calendar-cell.is-trained:hover {
     background: transparent;
 }
 
-/* Right-side Day Inspector */
 .calendar-detail-panel {
     position: sticky;
     top: 1.25rem;
@@ -3823,7 +3774,6 @@ a.calendar-cell.is-trained:hover {
     margin-top: 1rem;
 }
 
-/* Dashboard Mini-Calendar Widget */
 .dashboard-mini-calendar {
     margin-top: 1.5rem;
     padding-top: 1.25rem;

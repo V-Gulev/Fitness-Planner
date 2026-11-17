@@ -11,7 +11,6 @@
         </div>
         <p class="feedback" role="status" th:if="${notice}" th:text="${notice}"></p>
 
-        <!-- Available workouts from active plan -->
         <section class="available-workouts" aria-labelledby="available-workouts-title">
             <div class="available-workouts-heading">
                 <h2 id="available-workouts-title">Start a workout</h2>
@@ -54,7 +53,6 @@
             </div>
         </section>
 
-        <!-- Interactive Workout Calendar -->
         <section id="workout-calendar" class="workout-calendar-section" aria-labelledby="workout-calendar-title">
             <div class="calendar-section-heading">
                 <div>
@@ -194,7 +192,6 @@
                             </div>
                         </div>
 
-                        <!-- Session Day Panels -->
                         <div class="calendar-day-panel"
                              th:each="day : ${calendar.days}"
                              th:if="${day.inMonth and day.hasSessions()}"
@@ -245,7 +242,6 @@
                             </div>
                         </div>
 
-                        <!-- Empty Day / Rest Day Fallback Panel -->
                         <div class="calendar-day-panel calendar-empty-day-panel"
                              data-calendar-empty-panel
                              th:hidden="${calendar.selectedDay().hasSessions()}">
@@ -276,7 +272,6 @@
             </div>
         </section>
 
-        <!-- Chronological Recent Workouts Disclosure -->
         <details class="training-panel calendar-history-disclosure" th:unless="${#lists.isEmpty(history)}">
             <summary>
                 <span>Recent workout sessions list</span>

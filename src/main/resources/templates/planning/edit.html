@@ -6,7 +6,6 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 
 <main id="main" class="workspace edit-workspace" tabindex="-1">
-    <!-- Breadcrumb Navigation -->
     <nav class="plan-breadcrumb" aria-label="Breadcrumb">
         <a th:href="@{/plans}" class="breadcrumb-link">
             <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.75" width="16" height="16" aria-hidden="true"><path d="M12.5 15 7.5 10l5-5"/></svg>
@@ -18,7 +17,6 @@
         <span class="breadcrumb-current">Edit training week</span>
     </nav>
 
-    <!-- Page Intro / Hero Header -->
     <div class="page-intro edit-intro">
         <div class="edit-badge-strip">
             <span class="plan-status-pill status-active">
@@ -33,7 +31,6 @@
         <p class="lead edit-hero-lead">Customize workout splits, swap movements, and tailor sets, reps, and rest times. Preview volume impact before publishing.</p>
     </div>
 
-    <!-- Error Alerts -->
     <div th:if="${formProblem}" class="feedback feedback-error" role="alert">
         <svg class="feedback-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2"/>
@@ -60,7 +57,6 @@
         <input type="hidden" name="profileVersion" th:value="${editor.input.profile.version}">
         <input type="hidden" name="previewToken" th:value="${review == null ? '' : review.token}">
 
-        <!-- Sticky Floating HUD Action Bar -->
         <div class="editor-actions training-panel">
             <div class="editor-status-wrap">
                 <span class="editor-status-dot" aria-hidden="true"></span>
@@ -87,12 +83,10 @@
             </div>
         </div>
 
-        <!-- Weekly Impact Review Section (shown on preview) -->
         <div th:if="${review != null and review.problems.isEmpty()}" class="impact-section-wrapper">
             <section th:replace="~{planning/impact :: comparison(${review.impact})}"></section>
         </div>
 
-        <!-- Interactive Day Filter Tabs (matching /plans toolbar) -->
         <div class="plan-days-toolbar editor-days-toolbar" th:if="${draft.days.size() > 1}">
             <div class="plan-days-filter" role="tablist" aria-label="Filter workout days">
                 <button type="button" class="day-filter-btn is-active" data-day-filter="all" role="tab" aria-selected="true">
@@ -108,7 +102,6 @@
             </div>
         </div>
 
-        <!-- Days Container -->
         <div class="editor-days-container">
             <details class="editor-day training-panel" th:each="day, i : ${draft.days}"
                      th:id="'editor-day-' + ${day.weekday}"
